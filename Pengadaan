@@ -1,0 +1,2176 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIM Pengadaan BBGTK Provinsi Jawa Barat</title>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <!-- Library untuk Konversi ke PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f6f9;
+            font-size: 0.9rem;
+        }
+        /* CONTAINER UTAMA TABEL DENGAN SCROLL */
+        .table-scroll-container {
+            max-height: 72vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        /* STICKY TABLE HEADER YANG RAPI */
+        .table-custom thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: #212529 !important;
+            color: #fff;
+            box-shadow: inset 0 -1px 0 #32383e;
+        }
+        .sub-row {
+            background-color: #f8f9fa;
+            font-size: 0.8rem;
+            color: #555;
+        }
+        .table-custom th {
+            vertical-align: middle;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+        .table-matrix th, .table-matrix td {
+            text-align: center;
+            vertical-align: middle;
+            font-size: 0.82rem;
+            padding: 0.4rem;
+        }
+        .table-matrix th {
+            background-color: #f2f2f2;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border-radius: 16px;
+        }
+        .clickable-title {
+            color: #0d6efd;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .clickable-title:hover {
+            text-decoration: underline;
+        }
+        /* Badge styling untuk Penomoran */
+        .badge-pengadaan { font-size: 0.75rem; padding: 0.5em 0.8em; border-radius: 8px; font-weight: 600; }
+        .badge-soft-primary { background-color: #dbeafe; color: #1e40af; }
+        .badge-soft-danger { background-color: #fee2e2; color: #991b1b; }
+        .badge-soft-info { background-color: #cffafe; color: #155e75; }
+        .badge-soft-warning { background-color: #fef3c7; color: #92400e; }
+        .badge-soft-success { background-color: #d1fae5; color: #065f46; }
+        .badge-soft-secondary { background-color: #f1f5f9; color: #475569; }
+        .btn-action { padding: 0.35rem 0.6rem; font-size: 0.75rem; border-radius: 6px; box-shadow: none; border-width: 1.5px; }
+        
+        .empty-state { padding: 40px 20px; text-align: center; color: #94a3b8; }
+        .empty-state i { font-size: 3rem; color: #cbd5e1; margin-bottom: 15px; }
+
+        /* Custom Footer */
+        .custom-footer {
+            background: linear-gradient(135deg, #0f172a, #1e3a8a);
+            color: #cbd5e1;
+            text-align: center;
+            padding: 12px 0;
+            font-size: 12.5px;
+            font-weight: 500;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.1);
+            margin-top: 40px; 
+            margin-bottom: 15px; 
+        }
+        .custom-footer .designer-name { color: #60a5fa; font-weight: 700; letter-spacing: 0.5px; }
+        .custom-footer .ai-text { color: #f8fafc; font-weight: 600; }
+        .custom-footer i { color: #3b82f6; margin: 0 4px; font-size: 13px; }
+
+        /* Overlay Loading Screen */
+        #loadingOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(255,255,255,0.9); z-index: 9999; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .spinner-border { width: 3rem; height: 3rem; color: #2563eb; }
+        @media print {
+            body * { visibility: hidden; }
+            #printArea, #printArea * { visibility: visible; }
+            #printArea { position: absolute; left: 0; top: 0; width: 100%; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Overlay Loading Screen -->
+<div id="loadingOverlay">
+    <div class="spinner-border mb-3" role="status"></div>
+    <h5 class="fw-bold text-slate-700" id="loadingText">Menghubungkan ke Cloud...</h5>
+    <p class="text-muted small">Harap tunggu sebentar</p>
+</div>
+
+<div class="container-fluid py-3 px-4">
+    
+    <!-- HEADER & NAVIGASI TAB UTAMA -->
+    <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h4 class="fw-bold text-dark mb-0">SIM Pengadaan BBGTK Provinsi Jawa Barat</h4>
+            <ul class="nav nav-pills" id="pills-tab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active py-1 px-3 mb-1" data-bs-toggle="pill" data-bs-target="#tab-list" type="button" role="tab">Daftar Pengadaan</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link py-1 px-3 mb-1" data-bs-toggle="pill" data-bs-target="#tab-rekap" type="button" role="tab">📊 Rekap Pengadaan</button>
+                </li>
+                <!-- MENU BARU SESUAI PERMINTAAN -->
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link py-1 px-3 mb-1" data-bs-toggle="pill" data-bs-target="#tab-penomoran" type="button" role="tab">📑 Penomoran Kontrak</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link py-1 px-3 mb-1" data-bs-toggle="pill" data-bs-target="#tab-spk" type="button" role="tab">💰 Rekap SPK Keuangan</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link py-1 px-3 mb-1" data-bs-toggle="pill" data-bs-target="#tab-database" type="button" role="tab">📂 Rekap Data Base SIM</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link py-1 px-3 mb-1" data-bs-toggle="pill" data-bs-target="#tab-setting" type="button" role="tab">⚙️ Pengaturan</button>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- KONTEN UTAMA (TAB SYSTEM) -->
+    <div class="tab-content" id="pills-tabContent">
+        
+        <!-- TAB 1: DAFTAR PENGADAAN -->
+        <div class="tab-pane fade show active" id="tab-list" role="tabpanel">
+            <div class="card mb-3">
+                <div class="card-body py-2">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-md-4">
+                            <input type="text" id="cariKeyword" class="form-control form-control-sm" placeholder="🔍 Cari Pekerjaan / Penyedia..." onkeyup="renderAplikasi()">
+                        </div>
+                        <div class="col-md-3">
+                            <select id="filterPic" class="form-select form-select-sm" onchange="renderAplikasi()">
+                                <option value="">-- Semua Petugas Pengadaan --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select id="filterStatus" class="form-select form-select-sm" onchange="renderAplikasi()">
+                                <option value="">-- Semua Status Review --</option>
+                                <option value="Review PPK">Review PPK</option>
+                                <option value="Proses Pekerjaan">Proses Pekerjaan</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Batal">Batal</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 text-end">
+                            <button type="button" class="btn btn-primary btn-sm w-100" onclick="bukaModalTambah()">+ Ajuan Baru</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body p-2">
+                    <div class="table-scroll-container">
+                        <table class="table table-bordered align-middle table-custom mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th width="4%">No</th>
+                                    <th width="36%">Informasi Utama Pekerjaan & Tim</th>
+                                    <th width="25%">Anggaran & Metode</th>
+                                    <th width="25%">Status & Dokumen Kontrak</th>
+                                    <th width="10%">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabelData">
+                                <tr><td colspan="5" class="text-center text-muted py-4">Memuat data dari Google Spreadsheet (Sheet1)...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: MENU REKAP PENGADAAN (MATRIKS) -->
+        <div class="tab-pane fade" id="tab-rekap" role="tabpanel">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body py-3">
+                            <h6 class="card-title mb-1" style="font-size: 0.85rem;">Total Keseluruhan Kontrak</h6>
+                            <h4 id="rekapTotalPaket" class="mb-0 fw-bold">0 Paket</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card bg-success text-white">
+                        <div class="card-body py-3">
+                            <h6 class="card-title mb-1" style="font-size: 0.85rem;">Akumulasi Nilai Kontrak</h6>
+                            <h4 id="rekapTotalNilai" class="mb-0 fw-bold">Rp 0</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-secondary text-white py-2 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-semibold">Matriks Rekapitulasi Kontrak per Petugas Pengadaan</h6>
+                    <button class="btn btn-light btn-sm text-dark fw-bold py-0" onclick="eksporRekapCSV()">📥 Unduh Matriks Rekap (CSV)</button>
+                </div>
+                <div class="card-body p-2">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-matrix mb-0">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" class="align-middle bg-warning text-dark" style="min-width: 120px;">Petugas Pengadaan</th>
+                                    <th rowspan="2" class="align-middle bg-danger text-white">JUMLAH KONTRAK</th>
+                                    <th colspan="4" class="bg-info text-white">Metode Pembayaran</th>
+                                    <th colspan="6" class="bg-primary text-white">Penetapan Barang / Jasa</th>
+                                    <th colspan="3" class="bg-secondary text-white">Status Dokumen</th>
+                                    <th colspan="3" class="bg-dark text-white">Pencatatan di SPSE</th>
+                                </tr>
+                                <tr>
+                                    <th class="bg-light">LS</th>
+                                    <th class="bg-light">LS Kontrak</th>
+                                    <th class="bg-light">UP/TUP</th>
+                                    <th class="bg-light">UP/TUP Kontrak</th>
+                                    <th class="bg-light">Barang (B)</th>
+                                    <th class="bg-light">Konstruksi (PK)</th>
+                                    <th class="bg-light">Jasa Kons. (JK)</th>
+                                    <th class="bg-light">Jasa Akom. (JL)</th>
+                                    <th class="bg-light">Jasa Konsum. (JL)</th>
+                                    <th class="bg-light">Jasa Lainnya (JL)</th>
+                                    <th class="bg-light text-secondary">Proses Dokumen</th>
+                                    <th class="bg-light text-secondary">TTD PPK</th>
+                                    <th class="bg-light text-secondary">Arsip PIC</th>
+                                    <th class="bg-light text-dark">Belum Tercatat</th>
+                                    <th class="bg-light text-dark">Sudah Draf</th>
+                                    <th class="bg-light text-dark">Paket Selesai</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabelMatriksRekap"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB BARU: PENOMORAN KONTRAK (SISTEM PENOMORAN SURAT TERINTEGRASI) -->
+        <div class="tab-pane fade" id="tab-penomoran" role="tabpanel">
+            <!-- Sub-navigasi internal Penomoran Kontrak -->
+            <ul class="nav nav-tabs mb-3" id="penomoranSubTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active fw-bold" id="subtab-ajuan-btn" data-bs-toggle="tab" data-bs-target="#subtab-ajuan" type="button" role="tab">Data Ajuan</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-bold" id="subtab-rekap-btn" data-bs-toggle="tab" data-bs-target="#subtab-rekap" type="button" role="tab">Rekap Nomor Surat</button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="penomoranSubContent">
+                <!-- Sub-tab 1: Data Ajuan -->
+                <div class="tab-pane fade show active" id="subtab-ajuan" role="tabpanel">
+                    <div class="d-flex justify-content-between align-items-center mb-3 px-1">
+                        <h5 class="fw-bold m-0 text-slate-800">Dashboard Ajuan Nomor Surat</h5>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-light border text-secondary btn-sm d-flex align-items-center gap-1" onclick="tarikDataTerbaru()">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh Data
+                            </button>
+                            <button class="btn btn-primary btn-sm d-flex align-items-center gap-1" onclick="bukaModalAjuanPenomoran()">
+                                <i class="bi bi-plus-circle-fill"></i> Tambah Ajuan
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center" style="width: 5%">No</th>
+                                            <th>Pejabat Pengadaan</th>
+                                            <th>Nama Pekerjaan</th>
+                                            <th class="text-center">Jenis Pengadaan</th>
+                                            <th>Penyedia Barang/Jasa</th>
+                                            <th class="text-center">Jumlah Nomor Surat</th>
+                                            <th class="text-center" style="width: 18%">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabelAjuanPenomoran"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sub-tab 2: Rekap Nomor Surat -->
+                <div class="tab-pane fade" id="subtab-rekap" role="tabpanel">
+                    <div class="d-flex justify-content-between align-items-center mb-3 px-1">
+                        <h5 class="fw-bold m-0 text-slate-800">Rekapitulasi Nomor Surat PBJ BBGTK Jabar</h5>
+                        <span class="badge bg-success text-white py-2 px-3 shadow-sm rounded-pill"><i class="bi bi-cloud-check-fill me-1"></i> Tersinkronisasi Otomatis</span>
+                    </div>
+                    <div class="card">
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-striped align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center">No Urut</th>
+                                            <th>Nomor Surat Lengkap</th>
+                                            <th>Perihal Dokumen</th>
+                                            <th>Tanggal</th>
+                                            <th>Nama Pekerjaan</th>
+                                            <th>Penyedia</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabelRekapGlobalPenomoran"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: REKAP SPK KEUANGAN -->
+        <div class="tab-pane fade" id="tab-spk" role="tabpanel">
+            <div class="row mb-3 g-2">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white shadow-sm">
+                        <div class="card-body py-2 px-3">
+                            <small class="text-white-50 fw-semibold">Total Nilai SPM</small>
+                            <h5 id="infografisTotalSpm" class="mb-0 fw-bold">Rp 0</h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white shadow-sm">
+                        <div class="card-body py-2 px-3">
+                            <small class="text-white-50 fw-semibold">Total Nilai SP2D</small>
+                            <h5 id="infografisTotalSp2d" class="mb-0 fw-bold">Rp 0</h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-dark shadow-sm">
+                        <div class="card-body py-2 px-3">
+                            <small class="text-dark-50 fw-semibold">Total PPN</small>
+                            <h5 id="infografisTotalPpn" class="mb-0 fw-bold">Rp 0</h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-danger text-white shadow-sm">
+                        <div class="card-body py-2 px-3">
+                            <small class="text-white-50 fw-semibold">Total PPh</small>
+                            <h5 id="infografisTotalPph" class="mb-0 fw-bold">Rp 0</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-2">
+                    <h6 class="mb-0">Daftar Rekap SPK & Keuangan</h6>
+                    <button type="button" class="btn btn-success btn-sm" onclick="bukaModalSPK()">+ Input Data SPK Keuangan</button>
+                </div>
+                <div class="card-body p-2">
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle table-custom mb-0" style="font-size: 0.8rem;">
+                            <thead class="table-secondary text-center">
+                                <tr>
+                                    <th>No</th>
+                                    <th>No MAK</th>
+                                    <th>No & Tgl Kontrak</th>
+                                    <th>Uraian Pekerjaan</th>
+                                    <th>Penyedia Jasa</th>
+                                    <th>Nilai Kontrak</th>
+                                    <th>Addendum Kontrak</th>
+                                    <th>BAST</th>
+                                    <th>Cara Pembayaran</th>
+                                    <th>Petugas Pengadaan</th>
+                                    <th>SPM & SP2D</th>
+                                    <th>Nilai Keuangan (SPM/Pajak/SP2D)</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabelSpkKeuangan">
+                                <tr><td colspan="13" class="text-center text-muted py-4">Memuat data dari Google Spreadsheet (Sheet2)...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: REKAP DATA BASE SIM -->
+        <div class="tab-pane fade" id="tab-database" role="tabpanel">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-2">
+                    <h6 class="mb-0">Rekap Data Base SIM (Google Spreadsheet Keseluruhan)</h6>
+                    <a id="linkTabDB" href="#" target="_blank" class="btn btn-success btn-sm">🔗 Buka di Tab Baru Google Sheets</a>
+                </div>
+                <div class="card-body p-2">
+                    <div class="ratio ratio-16x9" style="min-height: 600px;">
+                        <iframe id="iframeDB" src="" allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 6: PENGATURAN -->
+        <div class="tab-pane fade" id="tab-setting" role="tabpanel">
+            <div class="card shadow-sm mb-4 border-primary">
+                <div class="card-header bg-primary text-white py-2">
+                    <h6 class="mb-0 fs-6">🔗 Pengaturan Link Google Spreadsheet (Database SIM)</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Link Google Spreadsheet:</label>
+                        <div class="input-group input-group-sm">
+                            <input type="text" id="inputLinkDB" class="form-control" placeholder="https://docs.google.com/spreadsheets/d/...">
+                            <button class="btn btn-success" type="button" onclick="simpanLink('db')">Simpan Link DB</button>
+                        </div>
+                    </div>
+                    <hr>
+                    <div>
+                        <label class="form-label fw-bold">Ekspor Data SIM (CSV):</label>
+                        <div>
+                            <button type="button" class="btn btn-success btn-sm" onclick="eksporKeCSV()">📥 Ekspor Data Pengadaan</button>
+                            <button type="button" class="btn btn-primary btn-sm ms-2" onclick="eksporSpkCSV()">📥 Ekspor Data SPK</button>
+                            <button type="button" class="btn btn-secondary btn-sm ms-2" onclick="eksporRekapCSV()">📥 Unduh Matriks Rekap Lengkap</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-dark text-white py-2"><h6 class="mb-0 fs-6">Kelola Data PPK</h6></div>
+                        <div class="card-body">
+                            <div class="input-group input-group-sm mb-2">
+                                <input type="text" id="inputMasterPpk" class="form-control" placeholder="Baru...">
+                                <button class="btn btn-success" type="button" onclick="tambahMaster('ppk')">Tambah</button>
+                            </div>
+                            <ul class="list-group" id="listMasterPpk" style="max-height: 180px; overflow-y: auto;"></ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-dark text-white py-2"><h6 class="mb-0 fs-6">Kelola Petugas Pengadaan</h6></div>
+                        <div class="card-body">
+                            <div class="input-group input-group-sm mb-2">
+                                <input type="text" id="inputMasterPic" class="form-control" placeholder="Baru...">
+                                <button class="btn btn-success" type="button" onclick="tambahMaster('pic')">Tambah</button>
+                            </div>
+                            <ul class="list-group" id="listMasterPic" style="max-height: 180px; overflow-y: auto;"></ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-dark text-white py-2"><h6 class="mb-0 fs-6">Kelola Petugas POKMIL/PP</h6></div>
+                        <div class="card-body">
+                            <div class="input-group input-group-sm mb-2">
+                                <input type="text" id="inputMasterPokmil" class="form-control" placeholder="Baru...">
+                                <button class="btn btn-success" type="button" onclick="tambahMaster('pokmil')">Tambah</button>
+                            </div>
+                            <ul class="list-group" id="listMasterPokmil" style="max-height: 180px; overflow-y: auto;"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- FOOTER -->
+<div class="container-fluid px-4">
+    <div class="custom-footer">
+        <span>Designed by <span class="designer-name">Aghmn</span></span>
+        <span class="mx-2" style="color: #475569;">|</span>
+        <span>Built with <i class="bi bi-cpu-fill"></i> <span class="ai-text">AI</span></span>
+    </div>
+</div>
+
+<!-- MODAL FORM ISIAN & EDIT PENGADAAN -->
+<div class="modal fade" id="modalForm" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white py-2">
+                <h5 class="modal-title fs-6" id="modalTitle">Form Pengajuan & Pencatatan Pengadaan Baru</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-3">
+                <form id="formPengadaan">
+                    <input type="hidden" id="editId">
+                    
+                    <h6 class="text-primary border-bottom pb-1 mb-2 fw-bold" style="font-size: 0.85rem;">1. Informasi Umum & Waktu</h6>
+                    <div class="row mb-2">
+                        <div class="col-md-4">
+                            <label class="form-label mb-1">Tim yang Mengajukan</label>
+                            <input type="text" class="form-control form-control-sm" id="tim" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label mb-1">Tanggal Ajuan</label>
+                            <input type="date" class="form-control form-control-sm" id="tglAjuan" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label mb-1">Nama Pekerjaan</label>
+                            <input type="text" class="form-control form-control-sm" id="namaPekerjaan" required>
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-md-4">
+                            <label class="form-label mb-1">Review</label>
+                            <select class="form-select form-select-sm" id="review">
+                                <option value="Review PPK">Review PPK</option>
+                                <option value="Proses Pekerjaan">Proses Pekerjaan</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Batal">Batal</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label mb-1">Durasi Waktu</label>
+                            <input type="text" class="form-control form-control-sm" id="durasiWaktu" placeholder="Contoh: 30 Hari">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label mb-1">Link Dokumen Terkait / Keterangan</label>
+                            <input type="text" class="form-control form-control-sm" id="linkDokumen" placeholder="URL / Keterangan">
+                        </div>
+                    </div>
+
+                    <h6 class="text-primary border-bottom pb-1 mb-2 mt-3 fw-bold" style="font-size: 0.85rem;">2. Personil Pengadaan</h6>
+                    <div class="row mb-2">
+                        <div class="col-md-4">
+                            <label class="form-label mb-1">PPK</label>
+                            <select class="form-select form-select-sm" id="ppkSelect"></select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label mb-1">Petugas Pengadaan</label>
+                            <select class="form-select form-select-sm" id="picSelect"></select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label mb-1">Petugas POKMIL/PP</label>
+                            <select class="form-select form-select-sm" id="pokmilSelect"></select>
+                        </div>
+                    </div>
+
+                    <h6 class="text-primary border-bottom pb-1 mb-2 mt-3 fw-bold" style="font-size: 0.85rem;">3. Klasifikasi, Metode & Nilai Anggaran</h6>
+                    <div class="row mb-2">
+                        <div class="col-md-4">
+                            <label class="form-label mb-1">Penetapan Barang/Jasa</label>
+                            <select class="form-select form-select-sm" id="penetapanSelect"></select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label mb-1">Metode Pembayaran</label>
+                            <select class="form-select form-select-sm" id="metodeBayarSelect"></select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label mb-1">Kode MAK</label>
+                            <input type="text" class="form-control form-control-sm" id="kodeMak" placeholder="Kode MAK...">
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">Nilai PAGU DIPA (Rp)</label>
+                            <input type="number" class="form-control form-control-sm" id="nilaiPagu" value="0">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">Pagu Kontrak (Rp)</label>
+                            <input type="number" class="form-control form-control-sm" id="paguKontrak" value="0">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">HPS Kontrak (Rp)</label>
+                            <input type="number" class="form-control form-control-sm" id="hpsKontrak" value="0">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">Nilai Kontrak (Rp)</label>
+                            <input type="number" class="form-control form-control-sm" id="nilaiKontrak" value="0">
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-md-6">
+                            <label class="form-label mb-1">Metode Pekerjaan</label>
+                            <select class="form-select form-select-sm" id="metodePekerjaanSelect"></select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label mb-1">Jenis Belanja</label>
+                            <select class="form-select form-select-sm" id="jenisBelanjaSelect"></select>
+                        </div>
+                    </div>
+
+                    <h6 class="text-primary border-bottom pb-1 mb-2 mt-3 fw-bold" style="font-size: 0.85rem;">4. Kontrak, Penyedia & Status Dokumen</h6>
+                    <div class="row mb-2">
+                        <div class="col-md-4">
+                            <label class="form-label mb-1">Dokumen Kontrak</label>
+                            <select class="form-select form-select-sm" id="bentukKontrakSelect"></select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label mb-1">Status Dokumen</label>
+                            <select class="form-select form-select-sm" id="statusDokumenSelect"></select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label mb-1">Nomor Kontrak (SPK)</label>
+                            <input type="text" class="form-control form-control-sm" id="noKontrak" placeholder="Nomor SPK...">
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">Tanggal SPK</label>
+                            <input type="date" class="form-control form-control-sm" id="tglKontrak">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">Nilai Kontrak (Sesuai Dok.)</label>
+                            <input type="number" class="form-control form-control-sm" id="nilaiSesuaiDok" value="0">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">Nilai Addendum (Rp)</label>
+                            <input type="number" class="form-control form-control-sm" id="nilaiAddendum" value="0">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">Nama Penyedia</label>
+                            <input type="text" class="form-control form-control-sm" id="namaPenyedia" placeholder="Nama Penyedia...">
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-md-6">
+                            <label class="form-label mb-1">Link Scan Dokumen Kontrak</label>
+                            <input type="text" class="form-control form-control-sm" id="linkScan" placeholder="URL Drive scan kontrak...">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label mb-1">Pencatatan di SPSE</label>
+                            <select class="form-select form-select-sm" id="spse">
+                                <option value="Belum Tercatat">Belum Tercatat</option>
+                                <option value="Sudah Draf">Sudah Draf</option>
+                                <option value="Paket Selesai">Paket Selesai</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer px-0 pb-0 pt-2">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary btn-sm" id="btnSimpanForm">Simpan Data</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL FORM ISIAN SPK KEUANGAN -->
+<div class="modal fade" id="modalFormSPK" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white py-2">
+                <h5 class="modal-title fs-6" id="modalTitleSPK">Form Isian Data SPK & Keuangan</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-3">
+                <form id="formSpkKeuangan">
+                    <input type="hidden" id="editSpkId">
+                    
+                    <h6 class="text-primary border-bottom pb-1 mb-2 fw-bold" style="font-size: 0.85rem;">1. Informasi Kontrak & Pekerjaan</h6>
+                    <div class="row mb-2">
+                        <div class="col-md-4">
+                            <label class="form-label mb-1">NO MAK</label>
+                            <input type="text" class="form-control form-control-sm" id="spkNoMak" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label mb-1">NO KONTRAK</label>
+                            <input type="text" class="form-control form-control-sm" id="spkNoKontrak" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label mb-1">TGL KONTRAK</label>
+                            <input type="date" class="form-control form-control-sm" id="spkTglKontrak" required>
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-md-6">
+                            <label class="form-label mb-1">URAIAN PEKERJAAN</label>
+                            <input type="text" class="form-control form-control-sm" id="spkUraian" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label mb-1">PENYEDIA JASA</label>
+                            <input type="text" class="form-control form-control-sm" id="spkPenyedia" required>
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">NILAI KONTRAK (Rp)</label>
+                            <input type="number" class="form-control form-control-sm" id="spkNilaiKontrak" value="0">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">NO KONTRAK ADDENDUM</label>
+                            <input type="text" class="form-control form-control-sm" id="spkNoAddendum" placeholder="-">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">TGL KONTRAK ADDENDUM</label>
+                            <input type="date" class="form-control form-control-sm" id="spkTglAddendum">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">NILAI KONTRAK ADDENDUM (Rp)</label>
+                            <input type="number" class="form-control form-control-sm" id="spkNilaiAddendum" value="0">
+                        </div>
+                    </div>
+
+                    <h6 class="text-primary border-bottom pb-1 mb-2 mt-3 fw-bold" style="font-size: 0.85rem;">2. BAST, Pembayaran & Petugas</h6>
+                    <div class="row mb-2">
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">NO BAST</label>
+                            <input type="text" class="form-control form-control-sm" id="spkNoBast" placeholder="-">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">TANGGAL BAST</label>
+                            <input type="date" class="form-control form-control-sm" id="spkTglBast">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">CARA PEMBAYARAN</label>
+                            <select class="form-select form-select-sm" id="spkCaraBayarSelect"></select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">PETUGAS PENGADAAN</label>
+                            <select class="form-select form-select-sm" id="spkPicSelect"></select>
+                        </div>
+                    </div>
+
+                    <h6 class="text-primary border-bottom pb-1 mb-2 mt-3 fw-bold" style="font-size: 0.85rem;">3. SPM, SP2D & Rincian Keuangan</h6>
+                    <div class="row mb-2">
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">NO. SPM</label>
+                            <input type="text" class="form-control form-control-sm" id="spkNoSpm" placeholder="-">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">TANGGAL SPM</label>
+                            <input type="date" class="form-control form-control-sm" id="spkTglSpm">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">NO SP2D</label>
+                            <input type="text" class="form-control form-control-sm" id="spkNoSp2d" placeholder="-">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">TANGGAL SP2D</label>
+                            <input type="date" class="form-control form-control-sm" id="spkTglSp2d">
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">NILAI SPM (Rp)</label>
+                            <input type="number" class="form-control form-control-sm" id="spkNilaiSpm" value="0">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">PPN (Rp)</label>
+                            <input type="number" class="form-control form-control-sm" id="spkPpn" value="0">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">PPH (Rp)</label>
+                            <input type="number" class="form-control form-control-sm" id="spkPph" value="0">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">NILAI SP2D (Rp)</label>
+                            <input type="number" class="form-control form-control-sm" id="spkNilaiSp2d" value="0">
+                        </div>
+                    </div>
+
+                    <div class="modal-footer px-0 pb-0 pt-2">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary btn-sm" id="btnSimpanSPK">Simpan Data SPK</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL TAMBAH AJUAN PENOMORAN -->
+<div class="modal fade" id="modalAjuanPenomoran" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="judulModalAjuanPenomoran">Tambah Ajuan Baru</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formAjuanPenomoran" onsubmit="simpanAjuanPenomoran(event)">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="ajuanPenomoranId">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Pejabat Pengadaan</label>
+                            <select class="form-select" id="pejabatPenomoran" required>
+                                <option value="">-- Pilih Pejabat --</option>
+                                <option value="Agnia Hadini">Agnia Hadini</option>
+                                <option value="Shodiq Ridwanu">Shodiq Ridwanu</option>
+                                <option value="Resa Hilmawati">Resa Hilmawati</option>
+                                <option value="Erwin Risky">Erwin Risky</option>
+                                <option value="Heru Sutomo">Heru Sutomo</option>
+                                <option value="Surya Tanra">Surya Tanra</option>
+                                <option value="Ade Ahmad">Ade Ahmad</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Jenis Pengadaan</label>
+                            <select class="form-select" id="jenisPengadaanPenomoran" required>
+                                <option value="">-- Pilih Jenis --</option>
+                                <option value="Barang (B)">Barang (B)</option>
+                                <option value="Konstruksi (PK)">Konstruksi (PK)</option>
+                                <option value="Jasa Konsultansi (JK)">Jasa Konsultansi (JK)</option>
+                                <option value="Jasa Akomodasi (JL)">Jasa Akomodasi (JL)</option>
+                                <option value="Jasa Konsumsi (JL)">Jasa Konsumsi (JL)</option>
+                                <option value="Jasa Lainnya (JL)">Jasa Lainnya (JL)</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Nama Pekerjaan Barang/Jasa</label>
+                            <textarea class="form-control" id="pekerjaanPenomoran" rows="2" placeholder="Masukkan judul pekerjaan..." required></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Nama Penyedia Barang/Jasa</label>
+                            <input type="text" class="form-control" id="penyediaPenomoran" placeholder="PT / CV Penyedia..." required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary d-flex align-items-center gap-2">
+                        <i class="bi bi-cloud-arrow-up-fill"></i> Simpan ke Cloud
+                    </button> 
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL KELOLA NOMOR SURAT PENOMORAN -->
+<div class="modal fade" id="modalSuratPenomoran" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header d-flex justify-content-between align-items-center">
+                <h5 class="modal-title fw-bold">Kelola Nomor Surat</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="renderSemuaPenomoran()"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="p-3 mb-4 rounded d-flex align-items-center gap-3" style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
+                    <div class="bg-primary text-white rounded p-2 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                        <i class="bi bi-briefcase-fill fs-5"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold text-slate-800 mb-1" id="infoPekerjaanPenomoran"></h6>
+                        <small class="text-secondary">Penyedia: <span id="infoPenyediaPenomoran" class="fw-bold text-primary"></span></small>
+                    </div>
+                </div>
+
+                <form id="formTambahSuratPenomoran" onsubmit="tambahAtauEditSuratPenomoran(event)" class="bg-white p-3 rounded border mb-4 shadow-sm">
+                    <input type="hidden" id="editSuratIdPenomoran">
+                    <input type="hidden" id="editNomorUrutAsliPenomoran">
+                    
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Jenis Dokumen (Perihal)</label>
+                            <select class="form-select" id="jenisDokumenPenomoran" onchange="previewNomorSuratPenomoran()" required></select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Tanggal Surat</label>
+                            <input type="date" class="form-control" id="tanggalSuratPenomoran" onchange="previewNomorSuratPenomoran()" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Preview Nomor</label>
+                            <input type="text" class="form-control fw-bold bg-light" style="color: #059669; border-color: #a7f3d0;" id="previewNomorPenomoran" readonly>
+                        </div>
+                        <div class="col-md-2 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2" id="btnSubmitSuratPenomoran">
+                                <i class="bi bi-plus-lg"></i> Tambah
+                            </button>
+                            <button type="button" class="btn btn-secondary d-none" id="btnBatalEditPenomoran" onclick="batalEditSuratPenomoran()">Batal</button>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold m-0 text-slate-700">Daftar Surat Dibuat:</h6>
+                    <button type="button" class="btn btn-danger btn-sm d-flex align-items-center gap-2 shadow-sm" onclick="unduhPDFPenomoran()">
+                        <i class="bi bi-file-earmark-pdf-fill"></i> Unduh PDF
+                    </button>
+                </div>
+
+                <div id="areaCetakPDFPenomoran" class="border rounded overflow-hidden">
+                    <div id="kopPDFPenomoran" class="d-none text-center p-4">
+                        <h4 class="fw-bold">Rekapitulasi Nomor Surat</h4>
+                        <h6 id="kopKerjaPenomoran" class="mb-1"></h6>
+                        <small>Penyedia: <span id="kopPenyediaDataPenomoran" class="fw-bold"></span></small>
+                        <hr class="mt-3">
+                    </div>
+                    <table class="table table-hover mb-0 bg-white">
+                        <thead class="table-light border-bottom">
+                            <tr>
+                                <th class="text-center" style="width: 8%">Urutan</th>
+                                <th>Perihal Dokumen</th>
+                                <th>Nomor Surat Lengkap</th>
+                                <th>Tanggal</th>
+                                <th class="text-center aksi-kolom-penomoran" style="width: 15%">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelSuratPenomoran"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success px-4 d-flex align-items-center gap-2" data-bs-dismiss="modal" onclick="renderSemuaPenomoran()">
+                    <i class="bi bi-check-circle-fill"></i> Selesai
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CETAK PENGADAAN -->
+<div class="modal fade" id="modalCetak" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary text-white py-2">
+                <h5 class="modal-title fs-6">Rincian Dokumen Pengadaan</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" id="printArea">
+                <div class="text-center mb-4">
+                    <h5 class="fw-bold mb-1">PEMERINTAH PROVINSI JAWA BARAT</h5>
+                    <h6 class="fw-bold text-uppercase">BBGTK PROVINSI JAWA BARAT</h6>
+                    <p class="text-muted small mb-0">Lembar Rincian Data Pengadaan Barang dan Jasa</p>
+                    <hr>
+                </div>
+                <div id="kontenCetak" style="font-size: 0.85rem;"></div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
+                <button type="button" class="btn btn-success btn-sm" onclick="window.print()">Cetak / Print</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Script Logic Utama -->
+<script>
+    let masterData = {
+        ppk: ["Rohimat", "Anne Greanne B. Sagita", "Ahmad Djunaidi"],
+        pic: ["Ade Ahmad", "Surya Tanra", "Heru Sutomo", "Erwin Risky", "Shodiq Ridwanu", "Agnia Hadini", "Resa Hilmawati", "Nuzul", "Suha Syaila"],
+        pokmil: ["Anne Greanne B. Sagita", "Ahmad Djunaidi", "Tim Pokmil"],
+        penetapan: ["Barang", "Konstruksi", "Jasa Konsultansi", "Jasa Akomodasi", "Jasa Konsumsi", "Jasa Lainnya"],
+        metodeBayar: ["LS", "LS Kontrak", "UP/TUP", "UP/TUP Kontrak"],
+        metodePekerjaan: ["E-Purchasing", "Pengadaan Langsung", "Penunjukan Langsung", "Tender Cepat", "Tender", "Swakelola"],
+        jenisBelanja: ["Belanja Jasa", "Belanja Barang", "Belanja Modal"],
+        bentukKontrak: ["Bukti Pembelian/Pembayaran", "Surat Pesanan/Kwitansi", "Surat Pesanan/E-katalog", "Surat Perintah Kerja (SPK)", "Surat Perjanjian"],
+        statusDokumen: ["Proses Dokumen", "Tanda Tangan PPK", "Arsip oleh PIC Pengadaan"]
+    };
+
+    let dataPengadaan = [];
+    let dataSpkKeuangan = [];
+
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw-NGYLZ2oK_xSK6YLP74WMUGENGuhKdqvhTiQNNscNhEmUawA1eTp9Rm_z0Vbc2O8OjA/exec";
+    
+    let rawLinkDB = "https://docs.google.com/spreadsheets/d/1CazRGK6Yums9z4WymwVO9CLBWHogXNHO6I2_iB3KRZg/edit?usp=sharing";
+
+    function formatEmbedUrl(url) {
+        if(url.includes('/edit')) {
+            return url.replace(/\/edit.*$/, '/edit?usp=sharing&embedded=true');
+        } else if(!url.includes('embedded=true')) {
+            return url + (url.includes('?') ? '&' : '?') + 'embedded=true';
+        }
+        return url;
+    }
+
+    let linkDB = formatEmbedUrl(rawLinkDB);
+
+    function muatDataDariSpreadsheet() {
+        fetch(WEB_APP_URL)
+            .then(res => res.json())
+            .then(response => {
+                if(response.pengadaan) {
+                    let mappedPengadaan = response.pengadaan.map((item, originalIndex) => {
+                        const val = (key) => {
+                            for (let k in item) {
+                                if (k.toLowerCase().replace(/[^a-z0-9]/g, '') === key.toLowerCase().replace(/[^a-z0-9]/g, '')) return item[k];
+                            }
+                            return '';
+                        };
+
+                        return {
+                            originalNo: originalIndex + 1,
+                            id: Number(val('id')) || Date.now(),
+                            tim: val('timyangmengajukan') || val('tim') || '',
+                            tglAjuan: val('tanggalajuan') || val('tglajuan') || '',
+                            namaPekerjaan: val('namapekerjaan') || '',
+                            review: val('review') || '',
+                            durasiWaktu: val('durasiwaktu') || '',
+                            linkDokumen: val('linkdokumen') || val('keterangan') || '',
+                            ppk: val('ppk') || '',
+                            pic: val('petugaspengadaan') || val('pic') || '',
+                            pokmil: val('petugaspokmilpp') || val('pokmil') || '',
+                            penetapan: val('penetapanbarangjasa') || val('penetapan') || '',
+                            metodeBayar: val('metodepembayaran') || val('metodebayar') || '',
+                            kodeMak: val('kodemak') || '',
+                            nilaiPagu: Number(val('nilaipagudipa') || val('nilaipagu')) || 0,
+                            paguKontrak: Number(val('pagukontrak')) || 0,
+                            hpsKontrak: Number(val('hpskontrak')) || 0,
+                            nilaiKontrak: Number(val('nilaikontrak')) || 0,
+                            metodePekerjaan: val('metodepekerjaan') || '',
+                            jenisBelanja: val('jenisbelanja') || '',
+                            bentukKontrak: val('dokumenkontrak') || val('bentukkontrak') || '',
+                            statusDokumen: val('statusdokumen') || '',
+                            noKontrak: val('nomorkontrakspk') || val('nokontrak') || '',
+                            tglKontrak: val('tanggalspk') || val('tglkontrak') || '',
+                            nilaiSesuaiDok: Number(val('nilaikontraksesuaidok') || val('nilaisuesaidok')) || 0,
+                            nilaiAddendum: Number(val('nilaiaddendum')) || 0,
+                            namaPenyedia: val('namapenyedia') || '-',
+                            linkScan: val('linkscandokumenkontrak') || val('linkscan') || '',
+                            spse: val('pencatatanidspse') || val('spse') || ''
+                        };
+                    });
+                    dataPengadaan = mappedPengadaan.reverse();
+                }
+
+                if(response.spk) {
+                    let mappedSpk = response.spk.map((item) => {
+                        const val = (key) => {
+                            for (let k in item) {
+                                if (k.toLowerCase().replace(/[^a-z0-9]/g, '') === key.toLowerCase().replace(/[^a-z0-9]/g, '')) return item[k];
+                            }
+                            return '';
+                        };
+
+                        return {
+                            id: Number(val('id')),
+                            noMak: val('nomak') || '-',
+                            noKontrak: val('nokontrak') || '-',
+                            tglKontrak: val('tglkontrak') || '-',
+                            uraian: val('uraianpekerjaan') || val('uraian') || '-',
+                            penyedia: val('penyediajasa') || val('penyedia') || '-',
+                            nilaiKontrak: Number(val('nilaikontrak')) || 0,
+                            noAddendum: val('noaddendum') || '-',
+                            tglAddendum: val('tgladdendum') || '-',
+                            nilaiAddendum: Number(val('nilaiaddendum')) || 0,
+                            noBast: val('nobast') || '-',
+                            tglBast: val('tglbast') || '-',
+                            caraBayar: val('carapembayaran') || val('carabayar') || '-',
+                            petugas: val('petugaspengadaan') || val('petugas') || '-',
+                            noSpm: val('nospm') || '-',
+                            tglSpm: val('tglspm') || '-',
+                            noSp2d: val('nosp2d') || '-',
+                            tglSp2d: val('tglsp2d') || '-',
+                            nilaiSpm: Number(val('nilaispm')) || 0,
+                            ppn: Number(val('ppn')) || 0,
+                            pph: Number(val('pph')) || 0,
+                            nilaiSp2d: Number(val('nilaisp2d')) || 0
+                        };
+                    });
+                    dataSpkKeuangan = mappedSpk;
+                }
+
+                renderAplikasi();
+                renderTabelSpkKeuangan();
+            })
+            .catch(err => {
+                console.error("Gagal memuat data:", err);
+                document.getElementById('tabelData').innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Gagal terhubung ke database Spreadsheet.</td></tr>`;
+            });
+    }
+
+    function kirimKeSpreadsheet(payload, callback) {
+        fetch(WEB_APP_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+        })
+        .then(() => {
+            if(callback) callback();
+            setTimeout(muatDataDariSpreadsheet, 1500); 
+        })
+        .catch(err => {
+            console.error("Gagal menyimpan ke spreadsheet:", err);
+            alert("Terjadi kesalahan koneksi saat menyimpan data.");
+        });
+    }
+
+    function simpanLink(jenis) {
+        let val = document.getElementById('inputLinkDB').value.trim();
+        if(!val) return alert("Link tidak boleh kosong!");
+        linkDB = formatEmbedUrl(val);
+        document.getElementById('iframeDB').src = linkDB;
+        alert("Link Data Base SIM berhasil diperbarui!");
+    }
+
+    function updateDropdowns(selectedValues = {}) {
+        for (let key in masterData) {
+            const selectEl = document.getElementById(key + 'Select');
+            if (selectEl) {
+                const currentVal = selectedValues[key] || '';
+                selectEl.innerHTML = masterData[key].map(v => `<option value="${v}" ${v === currentVal ? 'selected' : ''}>${v}</option>`).join('');
+            }
+        }
+        
+        const spkCaraBayarEl = document.getElementById('spkCaraBayarSelect');
+        if(spkCaraBayarEl) {
+            const currentBayar = selectedValues.caraBayar || '';
+            spkCaraBayarEl.innerHTML = masterData.metodeBayar.map(v => `<option value="${v}" ${v === currentBayar ? 'selected' : ''}>${v}</option>`).join('');
+        }
+
+        const filterPic = document.getElementById('filterPic');
+        if (filterPic) {
+            const currentFilter = filterPic.value;
+            filterPic.innerHTML = `<option value="">-- Semua Petugas Pengadaan --</option>` + masterData.pic.map(v => `<option value="${v}" ${v === currentFilter ? 'selected' : ''}>${v}</option>`).join('');
+        }
+
+        const spkPicEl = document.getElementById('spkPicSelect');
+        if (spkPicEl) {
+            const currentPic = selectedValues.pic || '';
+            spkPicEl.innerHTML = masterData.pic.map(v => `<option value="${v}" ${v === currentPic ? 'selected' : ''}>${v}</option>`).join('');
+        }
+    }
+
+    function renderMasterSettings() {
+        for (let key in masterData) {
+            const capitalKey = key.charAt(0).toUpperCase() + key.slice(1);
+            const listEl = document.getElementById(`listMaster${capitalKey}`);
+            if (listEl) {
+                listEl.innerHTML = masterData[key].map((item, index) => `
+                    <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2" style="font-size:0.85rem;">
+                        <span>${item}</span>
+                        <div>
+                            <button type="button" class="btn btn-sm btn-outline-warning py-0 px-1 me-1" style="font-size:0.75rem;" onclick="editMaster('${key}', ${index})">Edit</button>
+                            <button type="button" class="btn btn-sm btn-outline-danger py-0 px-1" style="font-size:0.75rem;" onclick="hapusMaster('${key}', ${index})">Hapus</button>
+                        </div>
+                    </li>
+                `).join('');
+            }
+        }
+        updateDropdowns();
+        document.getElementById('inputLinkDB').value = rawLinkDB;
+    }
+
+    function tambahMaster(type) {
+        const capitalKey = type.charAt(0).toUpperCase() + type.slice(1);
+        const inputEl = document.getElementById(`inputMaster${capitalKey}`);
+        if (!inputEl) return;
+        const val = inputEl.value.trim();
+        if(!val) return alert("Nama tidak boleh kosong!");
+        masterData[type].push(val);
+        inputEl.value = '';
+        renderMasterSettings();
+    }
+
+    function editMaster(type, index) {
+        const newVal = prompt("Edit nilai baru:", masterData[type][index]);
+        if(newVal !== null && newVal.trim() !== "") {
+            masterData[type][index] = newVal.trim();
+            renderMasterSettings();
+        }
+    }
+
+    function hapusMaster(type, index) {
+        if(confirm("Yakin ingin menghapus item ini dari daftar master?")) {
+            masterData[type].splice(index, 1);
+            renderMasterSettings();
+        }
+    }
+
+    function bukaModalTambah() {
+        document.getElementById('formPengadaan').reset();
+        document.getElementById('editId').value = '';
+        document.getElementById('modalTitle').innerText = 'Form Pengajuan & Pencatatan Pengadaan Baru';
+        document.getElementById('btnSimpanForm').innerText = 'Simpan Data';
+        updateDropdowns();
+        let myModal = new bootstrap.Modal(document.getElementById('modalForm'));
+        myModal.show();
+    }
+
+    document.getElementById('formPengadaan').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const editId = document.getElementById('editId').value;
+        const actionType = editId ? 'edit' : 'tambah';
+
+        const newData = {
+            sheetType: 'pengadaan',
+            action: actionType,
+            id: editId ? Number(editId) : Date.now(),
+            tim: document.getElementById('tim').value,
+            tglAjuan: document.getElementById('tglAjuan').value,
+            namaPekerjaan: document.getElementById('namaPekerjaan').value,
+            review: document.getElementById('review').value,
+            durasiWaktu: document.getElementById('durasiWaktu').value || '-',
+            linkDokumen: document.getElementById('linkDokumen').value,
+            ppk: document.getElementById('ppkSelect').value,
+            pic: document.getElementById('picSelect').value,
+            pokmil: document.getElementById('pokmilSelect').value,
+            penetapan: document.getElementById('penetapanSelect').value,
+            metodeBayar: document.getElementById('metodeBayarSelect').value,
+            kodeMak: document.getElementById('kodeMak').value,
+            nilaiPagu: parseFloat(document.getElementById('nilaiPagu').value) || 0,
+            paguKontrak: parseFloat(document.getElementById('paguKontrak').value) || 0,
+            hpsKontrak: parseFloat(document.getElementById('hpsKontrak').value) || 0,
+            nilaiKontrak: parseFloat(document.getElementById('nilaiKontrak').value) || 0,
+            metodePekerjaan: document.getElementById('metodePekerjaanSelect').value,
+            jenisBelanja: document.getElementById('jenisBelanjaSelect').value,
+            bentukKontrak: document.getElementById('bentukKontrakSelect').value,
+            statusDokumen: document.getElementById('statusDokumenSelect').value,
+            noKontrak: document.getElementById('noKontrak').value || '-',
+            tglKontrak: document.getElementById('tglKontrak').value || '-',
+            nilaiSesuaiDok: parseFloat(document.getElementById('nilaiSesuaiDok').value) || 0,
+            nilaiAddendum: parseFloat(document.getElementById('nilaiAddendum').value) || 0,
+            namaPenyedia: document.getElementById('namaPenyedia').value || '-',
+            linkScan: document.getElementById('linkScan').value,
+            spse: document.getElementById('spse').value
+        };
+
+        let modalEl = document.getElementById('modalForm');
+        let modalObj = bootstrap.Modal.getInstance(modalEl);
+        modalObj.hide();
+
+        document.getElementById('tabelData').innerHTML = `<tr><td colspan="5" class="text-center text-primary py-4">Menyimpan data ke Spreadsheet (Sheet 1)... Mohon tunggu.</td></tr>`;
+
+        kirimKeSpreadsheet(newData, () => {
+            alert(editId ? "Data Pengadaan berhasil diperbarui di Spreadsheet (Sheet1)!" : "Data Pengadaan baru berhasil ditambahkan ke Spreadsheet (Sheet1)!");
+        });
+    });
+
+    function bukaModalSPK() {
+        document.getElementById('formSpkKeuangan').reset();
+        document.getElementById('editSpkId').value = '';
+        document.getElementById('modalTitleSPK').innerText = 'Form Isian Data SPK & Keuangan';
+        document.getElementById('btnSimpanSPK').innerText = 'Simpan Data SPK';
+        updateDropdowns();
+        let myModal = new bootstrap.Modal(document.getElementById('modalFormSPK'));
+        myModal.show();
+    }
+
+    document.getElementById('formSpkKeuangan').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const editId = document.getElementById('editSpkId').value;
+        const actionType = editId ? 'edit' : 'tambah';
+
+        const spkData = {
+            sheetType: 'spk',
+            action: actionType,
+            id: editId ? Number(editId) : Date.now(),
+            noMak: document.getElementById('spkNoMak').value,
+            noKontrak: document.getElementById('spkNoKontrak').value,
+            tglKontrak: document.getElementById('spkTglKontrak').value,
+            uraian: document.getElementById('spkUraian').value,
+            penyedia: document.getElementById('spkPenyedia').value,
+            nilaiKontrak: parseFloat(document.getElementById('spkNilaiKontrak').value) || 0,
+            noAddendum: document.getElementById('spkNoAddendum').value || '-',
+            tglAddendum: document.getElementById('spkTglAddendum').value || '-',
+            nilaiAddendum: parseFloat(document.getElementById('spkNilaiAddendum').value) || 0,
+            noBast: document.getElementById('spkNoBast').value || '-',
+            tglBast: document.getElementById('spkTglBast').value || '-',
+            caraBayar: document.getElementById('spkCaraBayarSelect').value,
+            petugas: document.getElementById('spkPicSelect').value,
+            noSpm: document.getElementById('spkNoSpm').value || '-',
+            tglSpm: document.getElementById('spkTglSpm').value || '-',
+            noSp2d: document.getElementById('spkNoSp2d').value || '-',
+            tglSp2d: document.getElementById('spkTglSp2d').value || '-',
+            nilaiSpm: parseFloat(document.getElementById('spkNilaiSpm').value) || 0,
+            ppn: parseFloat(document.getElementById('spkPpn').value) || 0,
+            pph: parseFloat(document.getElementById('spkPph').value) || 0,
+            nilaiSp2d: parseFloat(document.getElementById('spkNilaiSp2d').value) || 0
+        };
+
+        let modalEl = document.getElementById('modalFormSPK');
+        let modalObj = bootstrap.Modal.getInstance(modalEl);
+        modalObj.hide();
+        
+        document.getElementById('tabelSpkKeuangan').innerHTML = `<tr><td colspan="13" class="text-center text-primary py-4">Menyimpan data SPK ke Spreadsheet (Sheet 2)... Mohon tunggu.</td></tr>`;
+
+        kirimKeSpreadsheet(spkData, () => {
+            alert(editId ? "Data SPK Keuangan berhasil diperbarui di Spreadsheet (Sheet2)!" : "Data SPK Keuangan baru berhasil ditambahkan ke Spreadsheet (Sheet2)!");
+        });
+    });
+
+    function editSpkData(id) {
+        const item = dataSpkKeuangan.find(d => d.id == id);
+        if(!item) return;
+
+        document.getElementById('editSpkId').value = item.id;
+        document.getElementById('spkNoMak').value = item.noMak;
+        document.getElementById('spkNoKontrak').value = item.noKontrak;
+        document.getElementById('spkTglKontrak').value = item.tglKontrak;
+        document.getElementById('spkUraian').value = item.uraian;
+        document.getElementById('spkPenyedia').value = item.penyedia;
+        document.getElementById('spkNilaiKontrak').value = item.nilaiKontrak;
+        document.getElementById('spkNoAddendum').value = item.noAddendum === '-' ? '' : item.noAddendum;
+        document.getElementById('spkTglAddendum').value = item.tglAddendum === '-' ? '' : item.tglAddendum;
+        document.getElementById('spkNilaiAddendum').value = item.nilaiAddendum;
+        document.getElementById('spkNoBast').value = item.noBast === '-' ? '' : item.noBast;
+        document.getElementById('spkTglBast').value = item.tglBast === '-' ? '' : item.tglBast;
+        
+        updateDropdowns({
+            caraBayar: item.caraBayar,
+            pic: item.petugas
+        });
+
+        document.getElementById('spkNoSpm').value = item.noSpm === '-' ? '' : item.noSpm;
+        document.getElementById('spkTglSpm').value = item.tglSpm === '-' ? '' : item.tglSpm;
+        document.getElementById('spkNoSp2d').value = item.noSp2d === '-' ? '' : item.noSp2d;
+        document.getElementById('spkTglSp2d').value = item.tglSp2d === '-' ? '' : item.tglSp2d;
+        document.getElementById('spkNilaiSpm').value = item.nilaiSpm;
+        document.getElementById('spkPpn').value = item.ppn;
+        document.getElementById('spkPph').value = item.pph;
+        document.getElementById('spkNilaiSp2d').value = item.nilaiSp2d;
+
+        document.getElementById('modalTitleSPK').innerText = 'Edit Data SPK & Keuangan';
+        document.getElementById('btnSimpanSPK').innerText = 'Update Data SPK';
+
+        let myModal = new bootstrap.Modal(document.getElementById('modalFormSPK'));
+        myModal.show();
+    }
+
+    function hapusSpkData(id) {
+        if(confirm("Yakin ingin menghapus data SPK Keuangan ini dari Spreadsheet (Sheet2)?")) {
+            document.getElementById('tabelSpkKeuangan').innerHTML = `<tr><td colspan="13" class="text-center text-danger py-4">Menghapus data... Mohon tunggu.</td></tr>`;
+            kirimKeSpreadsheet({ sheetType: 'spk', action: 'hapus', id: id }, () => {
+                alert("Data SPK berhasil dihapus dari Spreadsheet (Sheet2)!");
+            });
+        }
+    }
+
+    function renderTabelSpkKeuangan() {
+        const tbody = document.getElementById('tabelSpkKeuangan');
+        tbody.innerHTML = '';
+
+        let sumSpm = 0;
+        let sumSp2d = 0;
+        let sumPpn = 0;
+        let sumPph = 0;
+
+        dataSpkKeuangan.forEach(item => {
+            sumSpm += (item.nilaiSpm || 0);
+            sumSp2d += (item.nilaiSp2d || 0);
+            sumPpn += (item.ppn || 0);
+            sumPph += (item.pph || 0);
+        });
+
+        document.getElementById('infografisTotalSpm').innerText = formatRupiah(sumSpm);
+        document.getElementById('infografisTotalSp2d').innerText = formatRupiah(sumSp2d);
+        document.getElementById('infografisTotalPpn').innerText = formatRupiah(sumPpn);
+        document.getElementById('infografisTotalPph').innerText = formatRupiah(sumPph);
+
+        if(dataSpkKeuangan.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="13" class="text-center text-muted py-4">Belum ada data SPK Keuangan yang diinput.</td></tr>`;
+            return;
+        }
+
+        dataSpkKeuangan.forEach((item, idx) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="text-center fw-bold">${idx + 1}</td>
+                <td>${item.noMak}</td>
+                <td><b>${item.noKontrak}</b><br><small class="text-muted">${item.tglKontrak}</small></td>
+                <td>${item.uraian}</td>
+                <td>${item.penyedia}</td>
+                <td class="text-end fw-semibold text-primary">${formatRupiah(item.nilaiKontrak)}</td>
+                <td><b>No:</b> ${item.noAddendum}<br><b>Tgl:</b> ${item.tglAddendum}<br><b>Nilai:</b> ${formatRupiah(item.nilaiAddendum)}</td>
+                <td><b>No:</b> ${item.noBast}<br><small class="text-muted">Tgl: ${item.tglBast}</small></td>
+                <td><span class="badge bg-dark">${item.caraBayar}</span></td>
+                <td>${item.petugas}</td>
+                <td><b>SPM:</b> ${item.noSpm} (${item.tglSpm})<br><b>SP2D:</b> ${item.noSp2d} (${item.tglSp2d})</td>
+                <td><b>SPM:</b> ${formatRupiah(item.nilaiSpm)}<br><b>PPN:</b> ${formatRupiah(item.ppn)} | <b>PPh:</b> ${formatRupiah(item.pph)}<br><b>SP2D:</b> <span class="text-success fw-bold">${formatRupiah(item.nilaiSp2d)}</span></td>
+                <td class="text-center">
+                    <div class="btn-group-vertical btn-group-sm w-100">
+                        <button type="button" class="btn btn-outline-primary py-0 px-1 mb-1" style="font-size:0.75rem;" onclick="editSpkData(${item.id})">Edit</button>
+                        <button type="button" class="btn btn-outline-danger py-0 px-1" style="font-size:0.75rem;" onclick="hapusSpkData(${item.id})">Hapus</button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function editData(id) {
+        const item = dataPengadaan.find(d => d.id == id);
+        if (!item) return;
+
+        document.getElementById('editId').value = item.id;
+        document.getElementById('tim').value = item.tim;
+        document.getElementById('tglAjuan').value = item.tglAjuan;
+        document.getElementById('namaPekerjaan').value = item.namaPekerjaan;
+        document.getElementById('review').value = item.review;
+        document.getElementById('durasiWaktu').value = item.durasiWaktu;
+        document.getElementById('linkDokumen').value = item.linkDokumen;
+        
+        updateDropdowns({
+            ppk: item.ppk, pic: item.pic, pokmil: item.pokmil,
+            penetapan: item.penetapan, metodeBayar: item.metodeBayar,
+            metodePekerjaan: item.metodePekerjaan, jenisBelanja: item.jenisBelanja,
+            bentukKontrak: item.bentukKontrak, statusDokumen: item.statusDokumen
+        });
+
+        document.getElementById('kodeMak').value = item.kodeMak;
+        document.getElementById('nilaiPagu').value = item.nilaiPagu;
+        document.getElementById('paguKontrak').value = item.paguKontrak;
+        document.getElementById('hpsKontrak').value = item.hpsKontrak;
+        document.getElementById('nilaiKontrak').value = item.nilaiKontrak;
+        document.getElementById('noKontrak').value = item.noKontrak === '-' ? '' : item.noKontrak;
+        document.getElementById('tglKontrak').value = item.tglKontrak === '-' ? '' : item.tglKontrak;
+        document.getElementById('nilaiSesuaiDok').value = item.nilaiSesuaiDok;
+        document.getElementById('nilaiAddendum').value = item.nilaiAddendum;
+        document.getElementById('namaPenyedia').value = item.namaPenyedia === '-' ? '' : item.namaPenyedia;
+        document.getElementById('linkScan').value = item.linkScan;
+        document.getElementById('spse').value = item.spse;
+
+        document.getElementById('modalTitle').innerText = 'Edit Data Pengadaan';
+        document.getElementById('btnSimpanForm').innerText = 'Update Data';
+
+        let myModal = new bootstrap.Modal(document.getElementById('modalForm'));
+        myModal.show();
+    }
+
+    function cetakRincian(id) {
+        const item = dataPengadaan.find(d => d.id == id);
+        if (!item) return;
+
+        const html = `
+            <table class="table table-sm table-bordered">
+                <tr><th width="30%">Nama Pekerjaan</th><td><b>${item.namaPekerjaan}</b></td></tr>
+                <tr><th>Tim Pengaju</th><td>${item.tim}</td></tr>
+                <tr><th>Tanggal Ajuan</th><td>${item.tglAjuan}</td></tr>
+                <tr><th>Review</th><td>${item.review}</td></tr>
+                <tr><th>Durasi Waktu</th><td>${item.durasiWaktu}</td></tr>
+                <tr><th>PPK</th><td>${item.ppk}</td></tr>
+                <tr><th>Petugas Pengadaan</th><td>${item.pic}</td></tr>
+                <tr><th>Petugas POKMIL/PP</th><td>${item.pokmil}</td></tr>
+                <tr><th>Penetapan Barang/Jasa</th><td>${item.penetapan}</td></tr>
+                <tr><th>Metode Pembayaran</th><td>${item.metodeBayar}</td></tr>
+                <tr><th>Kode MAK</th><td>${item.kodeMak || '-'}</td></tr>
+                <tr><th>Nilai PAGU DIPA</th><td>${formatRupiah(item.nilaiPagu)}</td></tr>
+                <tr><th>Pagu Kontrak</th><td>${formatRupiah(item.paguKontrak)}</td></tr>
+                <tr><th>HPS Kontrak</th><td>${formatRupiah(item.hpsKontrak)}</td></tr>
+                <tr><th>Nilai Kontrak</th><td>${formatRupiah(item.nilaiKontrak)}</td></tr>
+                <tr><th>Metode Pekerjaan</th><td>${item.metodePekerjaan}</td></tr>
+                <tr><th>Jenis Belanja</th><td>${item.jenisBelanja}</td></tr>
+                <tr><th>Dokumen Kontrak</th><td>${item.bentukKontrak} (No: ${item.noKontrak}, Tgl: ${item.tglKontrak})</td></tr>
+                <tr><th>Status Dokumen</th><td>${item.statusDokumen}</td></tr>
+                <tr><th>Nilai Kontrak (Sesuai Dok.)</th><td>${formatRupiah(item.nilaiSesuaiDok)}</td></tr>
+                <tr><th>Nilai Addendum</th><td>${formatRupiah(item.nilaiAddendum)}</td></tr>
+                <tr><th>Nama Penyedia</th><td>${item.namaPenyedia}</td></tr>
+                <tr><th>Pencatatan di SPSE</th><td>${item.spse}</td></tr>
+                <tr><th>Link Dokumen</th><td>${item.linkDokumen || '-'}</td></tr>
+                <tr><th>Link Scan Dokumen</th><td>${item.linkScan || '-'}</td></tr>
+            </table>
+        `;
+        document.getElementById('kontenCetak').innerHTML = html;
+        let myModal = new bootstrap.Modal(document.getElementById('modalCetak'));
+        myModal.show();
+    }
+
+    function hapusData(id) {
+        if (confirm("Yakin ingin menghapus data pengadaan ini dari Spreadsheet (Sheet1)?")) {
+            document.getElementById('tabelData').innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Menghapus data... Mohon tunggu.</td></tr>`;
+            kirimKeSpreadsheet({ sheetType: 'pengadaan', action: 'hapus', id: id }, () => {
+                alert("Data Pengadaan berhasil dihapus dari Spreadsheet (Sheet1)!");
+            });
+        }
+    }
+
+    function formatRupiah(angka) {
+        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(angka);
+    }
+
+    function renderAplikasi() {
+        const tbody = document.getElementById('tabelData');
+        const tbodyMatrix = document.getElementById('tabelMatriksRekap');
+        tbody.innerHTML = '';
+        tbodyMatrix.innerHTML = '';
+
+        const keyword = document.getElementById('cariKeyword').value.toLowerCase();
+        const filterPicVal = document.getElementById('filterPic').value;
+        const filterStatusVal = document.getElementById('filterStatus').value;
+
+        let filteredData = dataPengadaan.filter(item => {
+            const matchKeyword = item.namaPekerjaan.toLowerCase().includes(keyword) || item.namaPenyedia.toLowerCase().includes(keyword) || item.tim.toLowerCase().includes(keyword);
+            const matchPic = filterPicVal === "" || item.pic === filterPicVal;
+            const matchStatus = filterStatusVal === "" || item.review === filterStatusVal;
+            return matchKeyword && matchPic && matchStatus;
+        });
+
+        let totalNilai = 0;
+        dataPengadaan.forEach(item => totalNilai += item.nilaiKontrak);
+
+        if (filteredData.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">Tidak ada data yang sesuai dengan filter/pencarian di Sheet1.</td></tr>`;
+        } else {
+            filteredData.forEach((item) => {
+                const tr1 = document.createElement('tr');
+                tr1.innerHTML = `
+                    <td rowspan="2" class="text-center fw-bold">${item.originalNo}</td>
+                    <td>
+                        <span class="fw-bold clickable-title" onclick="bukaModalSuratPenomoranDariDaftar('${item.id}')" title="Klik untuk kelola nomor surat">${item.namaPekerjaan}</span><br>
+                        <span class="text-muted">Tim: <b>${item.tim}</b> | Tgl: ${item.tglAjuan}</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-secondary">${item.penetapan}</span> 
+                        <span class="badge bg-dark">${item.metodeBayar}</span><br>
+                        <span class="text-muted">MAK: ${item.kodeMak || '-'}</span><br>
+                        <span class="fw-semibold text-primary">Kontrak: ${formatRupiah(item.nilaiKontrak)}</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-warning text-dark">${item.review}</span>
+                        <span class="badge bg-success">${item.spse}</span><br>
+                        <span class="text-muted">Penyedia: <b>${item.namaPenyedia}</b></span>
+                    </td>
+                    <td rowspan="2" class="text-center">
+                        <div class="btn-group-vertical btn-group-sm w-100">
+                            <button type="button" class="btn btn-outline-primary py-0 px-1 mb-1" style="font-size:0.75rem;" onclick="editData(${item.id})">Edit</button>
+                            <button type="button" class="btn btn-outline-secondary py-0 px-1 mb-1" style="font-size:0.75rem;" onclick="cetakRincian(${item.id})">Cetak</button>
+                            <button type="button" class="btn btn-outline-danger py-0 px-1" style="font-size:0.75rem;" onclick="hapusData(${item.id})">Hapus</button>
+                        </div>
+                    </td>
+                `;
+
+                const tr2 = document.createElement('tr');
+                tr2.className = 'sub-row';
+                tr2.innerHTML = `
+                    <td colspan="3">
+                        <div><b>Personil:</b> PPK (${item.ppk}) | Petugas Pengadaan (${item.pic}) | POKMIL/PP (${item.pokmil})</div>
+                        <div><b>Detail:</b> ${item.metodePekerjaan} | ${item.jenisBelanja} | Dok: ${item.bentukKontrak} (No: ${item.noKontrak}, Tgl: ${item.tglKontrak})</div>
+                        <div><b>Durasi:</b> ${item.durasiWaktu} | <b>Status Dok:</b> ${item.statusDokumen} | <b>Addendum:</b> ${formatRupiah(item.nilaiAddendum)}</div>
+                        <div>
+                            ${item.linkDokumen ? `<a href="${item.linkDokumen}" target="_blank" class="me-2">🔗 Link Dokumen</a>` : ''}
+                            ${item.linkScan ? `<a href="${item.linkScan}" target="_blank">📄 Scan Kontrak</a>` : ''}
+                        </div>
+                    </td>
+                `;
+
+                tbody.appendChild(tr1);
+                tbody.appendChild(tr2);
+            });
+        }
+
+        const spseList = ["Belum Tercatat", "Sudah Draf", "Paket Selesai"];
+        let grandTotals = { 
+            kontrak: 0, 
+            metodeBayar: {}, 
+            penetapan: {},
+            statusDokumen: {},
+            spse: {}
+        };
+        
+        masterData.metodeBayar.forEach(m => grandTotals.metodeBayar[m] = 0);
+        masterData.penetapan.forEach(p => grandTotals.penetapan[p] = 0);
+        masterData.statusDokumen.forEach(s => grandTotals.statusDokumen[s] = 0);
+        spseList.forEach(s => grandTotals.spse[s] = 0);
+
+        masterData.pic.forEach(picName => {
+            let rowKontrak = dataPengadaan.filter(d => d.pic === picName);
+            let totalKontrakPIC = rowKontrak.length;
+            grandTotals.kontrak += totalKontrakPIC;
+
+            let tr = document.createElement('tr');
+            let htmlCols = `<td class="fw-bold text-start ps-2 bg-light">${picName}</td><td class="fw-bold bg-warning text-dark">${totalKontrakPIC}</td>`;
+
+            masterData.metodeBayar.forEach(metode => {
+                let count = rowKontrak.filter(d => d.metodeBayar === metode).length;
+                grandTotals.metodeBayar[metode] += count;
+                htmlCols += `<td>${count}</td>`;
+            });
+
+            masterData.penetapan.forEach(pen => {
+                let count = rowKontrak.filter(d => d.penetapan === pen).length;
+                grandTotals.penetapan[pen] += count;
+                htmlCols += `<td>${count}</td>`;
+            });
+
+            masterData.statusDokumen.forEach(stat => {
+                let count = rowKontrak.filter(d => d.statusDokumen === stat).length;
+                grandTotals.statusDokumen[stat] += count;
+                htmlCols += `<td>${count}</td>`;
+            });
+
+            spseList.forEach(spseStat => {
+                let count = rowKontrak.filter(d => d.spse === spseStat).length;
+                grandTotals.spse[spseStat] += count;
+                htmlCols += `<td>${count}</td>`;
+            });
+
+            tr.innerHTML = htmlCols;
+            tbodyMatrix.appendChild(tr);
+        });
+
+        let trGrand = document.createElement('tr');
+        trGrand.className = 'fw-bold bg-warning text-dark';
+        let htmlGrand = `<td>Grand Total</td><td>${grandTotals.kontrak}</td>`;
+        
+        masterData.metodeBayar.forEach(metode => htmlGrand += `<td>${grandTotals.metodeBayar[metode]}</td>`);
+        masterData.penetapan.forEach(pen => htmlGrand += `<td>${grandTotals.penetapan[pen]}</td>`);
+        masterData.statusDokumen.forEach(stat => htmlGrand += `<td>${grandTotals.statusDokumen[stat]}</td>`);
+        spseList.forEach(spseStat => htmlGrand += `<td>${grandTotals.spse[spseStat]}</td>`);
+        
+        trGrand.innerHTML = htmlGrand;
+        tbodyMatrix.appendChild(trGrand);
+
+        document.getElementById('rekapTotalPaket').innerText = dataPengadaan.length + ' Paket';
+        document.getElementById('rekapTotalNilai').innerText = formatRupiah(totalNilai);
+    }
+
+    function eksporKeCSV() {
+        if (dataPengadaan.length === 0) return alert("Belum ada data untuk diekspor!");
+        let csvContent = "data:text/csv;charset=utf-8,No,Tim yang Mengajukan,Tanggal Ajuan,Nama Pekerjaan,Review,Durasi Waktu,Link Dokumen Terkait,PPK,Petugas Pengadaan,Petugas POKMIL/PP,Penetapan Barang/Jasa,Metode Pembayaran,Kode MAK,Nilai PAGU DIPA,Pagu Kontrak,HPS Kontrak,Nilai Kontrak,Metode Pekerjaan,Jenis Belanja,Dokumen Kontrak,Status Dokumen,Nomor Kontrak,Tanggal SPK,Nilai Kontrak (Sesuai Dok.),Nilai Addendum,Nama Penyedia,Link Scan Dokumen Kontrak,Pencatatan di SPSE\n";
+        
+        dataPengadaan.forEach((item) => {
+            let row = [
+                item.originalNo, `"${item.tim}"`, item.tglAjuan, `"${item.namaPekerjaan}"`, `"${item.review}"`, `"${item.durasiWaktu}"`, 
+                `"${item.linkDokumen}"`, `"${item.ppk}"`, `"${item.pic}"`, `"${item.pokmil}"`, `"${item.penetapan}"`, `"${item.metodeBayar}"`, 
+                `"${item.kodeMak}"`, item.nilaiPagu, item.paguKontrak, item.hpsKontrak, item.nilaiKontrak, `"${item.metodePekerjaan}"`, 
+                `"${item.jenisBelanja}"`, `"${item.bentukKontrak}"`, `"${item.statusDokumen}"`, `"${item.noKontrak}"`, item.tglKontrak, 
+                item.nilaiSesuaiDok, item.nilaiAddendum, `"${item.namaPenyedia}"`, `"${item.linkScan}"`, `"${item.spse}"`
+            ];
+            csvContent += row.join(",") + "\n";
+        });
+
+        let encodedUri = encodeURI(csvContent);
+        let link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "Data_Pengadaan_Sheet1.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function eksporSpkCSV() {
+        if (dataSpkKeuangan.length === 0) return alert("Belum ada data SPK untuk diekspor!");
+        let csvContent = "data:text/csv;charset=utf-8,No MAK,No Kontrak,Tgl Kontrak,Uraian Pekerjaan,Penyedia Jasa,Nilai Kontrak,No Addendum,Tgl Addendum,Nilai Addendum,No BAST,Tgl BAST,Cara Pembayaran,Petugas Pengadaan,No SPM,Tgl SPM,No SP2D,Tgl SP2D,Nilai SPM,PPN,PPh,Nilai SP2D\n";
+        
+        dataSpkKeuangan.forEach((item) => {
+            let row = [
+                `"${item.noMak}"`, `"${item.noKontrak}"`, `"${item.tglKontrak}"`, `"${item.uraian}"`, `"${item.penyedia}"`, item.nilaiKontrak,
+                `"${item.noAddendum}"`, `"${item.tglAddendum}"`, item.nilaiAddendum, `"${item.noBast}"`, `"${item.tglBast}"`, `"${item.caraBayar}"`,
+                `"${item.petugas}"`, `"${item.noSpm}"`, `"${item.tglSpm}"`, `"${item.noSp2d}"`, `"${item.tglSp2d}"`, item.nilaiSpm, item.ppn, item.pph, item.nilaiSp2d
+            ];
+            csvContent += row.join(",") + "\n";
+        });
+
+        let encodedUri = encodeURI(csvContent);
+        let link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "Data_SPK_Keuangan_Sheet2.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function eksporRekapCSV() {
+        const spseList = ["Belum Tercatat", "Sudah Draf", "Paket Selesai"];
+        let csvContent = "data:text/csv;charset=utf-8,Petugas Pengadaan,Jumlah Kontrak," + 
+                         masterData.metodeBayar.join(",") + "," + 
+                         masterData.penetapan.join(",") + "," + 
+                         masterData.statusDokumen.join(",") + "," + 
+                         spseList.join(",") + "\n";
+        
+        masterData.pic.forEach(picName => {
+            let rowKontrak = dataPengadaan.filter(d => d.pic === picName);
+            let row = [`"${picName}"`, rowKontrak.length];
+            
+            masterData.metodeBayar.forEach(metode => {
+                row.push(rowKontrak.filter(d => d.metodeBayar === metode).length);
+            });
+            masterData.penetapan.forEach(pen => {
+                row.push(rowKontrak.filter(d => d.penetapan === pen).length);
+            });
+            masterData.statusDokumen.forEach(stat => {
+                row.push(rowKontrak.filter(d => d.statusDokumen === stat).length);
+            });
+            spseList.forEach(spseStat => {
+                row.push(rowKontrak.filter(d => d.spse === spseStat).length);
+            });
+
+            csvContent += row.join(",") + "\n";
+        });
+
+        let encodedUri = encodeURI(csvContent);
+        let link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "Matriks_Rekap_Pengadaan_Lengkap.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // --- SCRIPT UTAMA UNTUK MENU PENOMORAN KONTRAK ---
+    const GOOGLE_APP_SCRIPT_URL_PENOMORAN = 'https://script.google.com/macros/s/AKfycby06DxDT08aWfCLCvZqorMtR9RsNAMKp-RqZB2pN3PSQrsWehh67xgJYNYtdpiCnT1B/exec';
+    const SECRET_KEY_PENOMORAN = "PBJReborn2026#";
+
+    const masterDokumenPenomoran = {
+        "Berita Acara Penyusunan RKS dan HPS/OE": "B7.2/PBJ.01.01",
+        "Surat Permintaan Pengadaan Barang dan Jasa": "B7.2/PBJ.01.01",
+        "Berita Acara Reviu Persiapan Pengadaan Jasa Lainnya": "B7.2/PBJ.01.01",
+        "Undangan Pemasukan Dokumen Isian Kualifikasi": "B7.2/PBJ.02.01",
+        "Berita Acara Evaluasi Kualifikasi": "B7.2/PBJ.02.01",
+        "Berita Acara Pembuktian Kualifikasi": "B7.2/PBJ.02.01",
+        "Penetapan dan Pengumuman Hasil Kualifikasi": "B7.2/PBJ.02.01",
+        "Pemberian Penjelasan": "B7.2/PBJ.02.01",
+        "Pemasukan dan Pembukaan Dokumen Penawaran": "B7.2/PBJ.02.02",
+        "Berita Acara Pembukaan dan Evaluasi Dokumen Penawaran": "B7.2/PBJ.02.02",
+        "Evaluasi Dokumen Penawaran": "B7.2/PBJ.02.02",
+        "Klarifikasi Teknis dan Negosiasi Harga": "B7.2/PBJ.02.02",
+        "Berita Acara Klarifikasi dan Negosiasi Teknis dan Harga": "B7.2/PBJ.02.02",
+        "Berita Acara Hasil Pengadaan Langsung": "B7.2/PBJ.03.01",
+        "Laporan Hasil Pengadaan Barang dan Jasa": "B7.2/PBJ.03.01",
+        "Penetapan Penyedia Jasa": "B7.2/PBJ.03.01",
+        "Pengumuman Hasil Pengadaan Langsung": "B7.2/PBJ.03.01",
+        "Surat Penunjukan Penyedia Barang/Jasa (SPPBJ)": "PBJ.B7.2/KU.01.02",
+        "Surat Perjanjian (SP) / Surat Perintah Kerja (SPK)": "PBJ.B7.2/KU.01.02",
+        "Addendum SP/SPK": "PBJ.B7.2/KU.01.02",
+        "Surat Perintah Mulai Kerja (SPMK)": "PBJ.B7.2/KU.01.02",
+        "Berita Acara Pemeriksaan Hasil Pekerjaan (BAPHP)": "PBJ.B7.2/KU.01.02",
+        "Berita Acara Serah Terima (BAST)": "PBJ.B7.2/KU.01.02",
+        "Berita Acara Pembayaran": "PBJ.B7.2/KU.01.02",
+        "BAST (khusus e-katalog)": "PBJ.B7.2/LK.00.01"
+    };
+
+    let dataAjuanPenomoran = [];
+    let nomorBulananPenomoran = {};
+    let aktifAjuanIdPenomoran = null;
+
+    const mAjuanPenomoran = new bootstrap.Modal(document.getElementById('modalAjuanPenomoran'));
+    const mSuratPenomoran = new bootstrap.Modal(document.getElementById('modalSuratPenomoran'));
+
+    function inisialisasiPenomoran() {
+        const select = document.getElementById('jenisDokumenPenomoran');
+        if(select) {
+            select.innerHTML = `<option value="">-- Pilih Dokumen --</option>`;
+            for (const [dokumen] of Object.entries(masterDokumenPenomoran)) {
+                select.innerHTML += `<option value="${dokumen}">${dokumen}</option>`;
+            }
+        }
+        tarikDataTerbaruPenomoran();
+    }
+
+    async function tarikDataTerbaruPenomoran() {
+        document.getElementById('loadingOverlay').style.display = 'flex';
+        document.getElementById('loadingText').innerText = "Mengambil data penomoran...";
+        try {
+            const urlFetch = `${GOOGLE_APP_SCRIPT_URL_PENOMORAN}?kunci=${encodeURIComponent(SECRET_KEY_PENOMORAN)}`;
+            const respon = await fetch(urlFetch);
+            if (!respon.ok) throw new Error(`HTTP Error: ${respon.status}`);
+            const rawText = await respon.text();
+            let dataState = JSON.parse(rawText);
+            if(dataState.error) throw new Error(dataState.error);
+            
+            dataAjuanPenomoran = dataState.dataAjuan || [];
+            nomorBulananPenomoran = dataState.nomorBulanan || {};
+            renderSemuaPenomoran();
+        } catch(error) {
+            console.error("Detail Error Penomoran:", error);
+        } finally {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+    }
+
+    async function simpanKeCloudPenomoran() {
+        document.getElementById('loadingOverlay').style.display = 'flex';
+        document.getElementById('loadingText').innerText = "Menyimpan ke Spreadsheet...";
+        let flatData = [];
+        dataAjuanPenomoran.forEach(ajuan => {
+            ajuan.listSurat.forEach(surat => {
+                flatData.push({
+                    "No Urut": String(surat.nomorUrutAsli).padStart(4, '0'),
+                    "Nomor Surat Lengkap": surat.nomorLengkap,
+                    "Perihal Dokumen": surat.jenis,
+                    "Tanggal": new Date(surat.tanggal).toLocaleDateString('id-ID', {day: '2-digit', month: 'long', year:'numeric'}),
+                    "Nama Pekerjaan": ajuan.pekerjaan,
+                    "Jenis Pengadaan": ajuan.jenisPengadaan,
+                    "Penyedia Barang/Jasa": ajuan.penyedia,
+                    "Pejabat Pengadaan": ajuan.pejabat
+                });
+            });
+        });
+
+        const payloadKirim = {
+            kunci: SECRET_KEY_PENOMORAN,
+            state: { dataAjuan: dataAjuanPenomoran, nomorBulanan: nomorBulananPenomoran },
+            dataFlat: flatData
+        };
+
+        try {
+            await fetch(GOOGLE_APP_SCRIPT_URL_PENOMORAN, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify(payloadKirim)
+            });
+            renderSemuaPenomoran();
+        } catch (error) {
+            console.error(error);
+        } finally {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+    }
+
+    function renderSemuaPenomoran() {
+        renderTabelAjuanPenomoran();
+        renderRekapGlobalPenomoran();
+    }
+
+    function getWarnaBadgePenomoran(jenis) {
+        switch(jenis) {
+            case 'Barang (B)': return 'badge-soft-primary';
+            case 'Konstruksi (PK)': return 'badge-soft-danger';
+            case 'Jasa Konsultansi (JK)': return 'badge-soft-info';
+            case 'Jasa Akomodasi (JL)': return 'badge-soft-warning';
+            case 'Jasa Konsumsi (JL)': return 'badge-soft-success';
+            case 'Jasa Lainnya (JL)': return 'badge-soft-secondary';
+            default: return 'bg-light text-dark border';
+        }
+    }
+
+    function bukaModalAjuanPenomoran(id = null) {
+        document.getElementById('formAjuanPenomoran').reset();
+        document.getElementById('ajuanPenomoranId').value = id || '';
+        if (id) {
+            const ajuan = dataAjuanPenomoran.find(a => a.id === id);
+            document.getElementById('judulModalAjuanPenomoran').innerText = 'Edit Ajuan Pekerjaan';
+            document.getElementById('pejabatPenomoran').value = ajuan.pejabat;
+            document.getElementById('jenisPengadaanPenomoran').value = ajuan.jenisPengadaan || '';
+            document.getElementById('pekerjaanPenomoran').value = ajuan.pekerjaan;
+            document.getElementById('penyediaPenomoran').value = ajuan.penyedia;
+        } else {
+            document.getElementById('judulModalAjuanPenomoran').innerText = 'Tambah Ajuan Pekerjaan';
+        }
+        mAjuanPenomoran.show();
+    }
+
+    function simpanAjuanPenomoran(e) {
+        e.preventDefault();
+        const id = document.getElementById('ajuanPenomoranId').value;
+        const ajuanBaru = {
+            id: id || 'AJN-' + Date.now(),
+            pejabat: document.getElementById('pejabatPenomoran').value,
+            jenisPengadaan: document.getElementById('jenisPengadaanPenomoran').value,
+            pekerjaan: document.getElementById('pekerjaanPenomoran').value,
+            penyedia: document.getElementById('penyediaPenomoran').value,
+            listSurat: []
+        };
+
+        if (id) {
+            const index = dataAjuanPenomoran.findIndex(a => a.id === id);
+            ajuanBaru.listSurat = dataAjuanPenomoran[index].listSurat;
+            dataAjuanPenomoran[index] = ajuanBaru;
+        } else {
+            dataAjuanPenomoran.push(ajuanBaru);
+        }
+        
+        mAjuanPenomoran.hide();
+        simpanKeCloudPenomoran();
+    }
+
+    function hapusAjuanPenomoran(id) {
+        if(confirm("Yakin ingin menghapus ajuan ini secara permanen dari server?")) {
+            dataAjuanPenomoran = dataAjuanPenomoran.filter(a => a.id !== id);
+            simpanKeCloudPenomoran();
+        }
+    }
+
+    function renderTabelAjuanPenomoran() {
+        const tbody = document.getElementById('tabelAjuanPenomoran');
+        if(!tbody) return;
+        tbody.innerHTML = '';
+        if (dataAjuanPenomoran.length === 0) {
+            return tbody.innerHTML = `
+                <tr><td colspan="7">
+                    <div class="empty-state">
+                        <i class="bi bi-inboxes"></i>
+                        <h5>Belum ada data ajuan</h5>
+                        <p class="mb-0">Silakan klik tombol "Tambah Ajuan" untuk memulai.</p>
+                    </div>
+                </td></tr>`;
+        }
+
+        dataAjuanPenomoran.forEach((ajuan, i) => {
+            const badgeClass = getWarnaBadgePenomoran(ajuan.jenisPengadaan);
+            tbody.innerHTML += `
+                <tr>
+                    <td class="text-center text-muted fw-bold">${i + 1}</td>
+                    <td class="fw-semibold text-dark">${ajuan.pejabat}</td>
+                    <td>${ajuan.pekerjaan}</td>
+                    <td class="text-center"><span class="badge-pengadaan ${badgeClass}">${ajuan.jenisPengadaan || '-'}</span></td>
+                    <td>${ajuan.penyedia}</td>
+                    <td class="text-center"><span class="badge bg-light text-dark border px-2 py-1"><i class="bi bi-envelope-paper"></i> ${ajuan.listSurat.length} Surat</span></td>
+                    <td class="text-center">
+                        <button class="btn btn-action btn-outline-primary" onclick="bukaModalSuratPenomoran('${ajuan.id}')" title="Kelola"><i class="bi bi-gear-fill"></i></button>
+                        <button class="btn btn-action btn-outline-warning mx-1" onclick="bukaModalAjuanPenomoran('${ajuan.id}')" title="Edit"><i class="bi bi-pencil-fill"></i></button>
+                        <button class="btn btn-action btn-outline-danger" onclick="hapusAjuanPenomoran('${ajuan.id}')" title="Hapus"><i class="bi bi-trash-fill"></i></button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    function bukaModalSuratPenomoran(idAjuan) {
+        aktifAjuanIdPenomoran = idAjuan;
+        const ajuan = dataAjuanPenomoran.find(a => a.id === idAjuan);
+        if(!ajuan) return;
+        document.getElementById('infoPekerjaanPenomoran').innerText = ajuan.pekerjaan;
+        document.getElementById('infoPenyediaPenomoran').innerText = ajuan.penyedia;
+        batalEditSuratPenomoran();
+        renderTabelSuratPenomoran();
+        mSuratPenomoran.show();
+    }
+
+    // Fungsi interaktif ketika nama pekerjaan di tab Daftar Pengadaan diklik
+    function bukaModalSuratPenomoranDariDaftar(idPengadaan) {
+        let item = dataPengadaan.find(d => Number(d.id) === Number(idPengadaan));
+        if(!item) return;
+        
+        // Cek apakah sudah ada di data ajuan penomoran berdasarkan nama pekerjaan & penyedia
+        let ajuanMatch = dataAjuanPenomoran.find(a => a.pekerjaan === item.namaPekerjaan && a.penyedia === item.namaPenyedia);
+        if(!ajuanMatch) {
+            // Jika belum ada, buat otomatis objek ajuan baru secara instan
+            ajuanMatch = {
+                id: 'AJN-' + Date.now(),
+                pejabat: item.pic || 'Shodiq Ridwanu',
+                jenisPengadaan: item.penetapan || 'Barang (B)',
+                pekerjaan: item.namaPekerjaan,
+                penyedia: item.namaPenyedia || '-',
+                listSurat: []
+            };
+            dataAjuanPenomoran.push(ajuanMatch);
+        }
+
+        // Pindah ke tab penomoran secara otomatis, lalu buka modal suratnya
+        const triggerEl = document.querySelector('button[data-bs-target="#tab-penomoran"]');
+        if(triggerEl) {
+            let tabObj = new bootstrap.Tab(triggerEl);
+            tabObj.show();
+        }
+
+        bukaModalSuratPenomoran(ajuanMatch.id);
+    }
+
+    function previewNomorSuratPenomoran() {
+        const jenis = document.getElementById('jenisDokumenPenomoran').value;
+        const tgl = document.getElementById('tanggalSuratPenomoran').value;
+        const idEdit = document.getElementById('editSuratIdPenomoran').value;
+        const noUrutAsli = document.getElementById('editNomorUrutAsliPenomoran').value;
+        const inputPreview = document.getElementById('previewNomorPenomoran');
+
+        if (jenis && tgl) {
+            const kodeArsip = masterDokumenPenomoran[jenis];
+            const dateObj = new Date(tgl);
+            
+            const romawi = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
+            const bulanRomawi = romawi[dateObj.getMonth()]; 
+            
+            const bulanAngka = String(dateObj.getMonth() + 1).padStart(2, '0'); 
+            const tahun = dateObj.getFullYear();
+            const keyBulanTahun = `${bulanAngka}-${tahun}`;
+
+            let noDipakai = 1;
+            if (idEdit) {
+                noDipakai = parseInt(noUrutAsli);
+            } else {
+                noDipakai = nomorBulananPenomoran[keyBulanTahun] || 1;
+            }
+
+            const noUrutStr = String(noDipakai).padStart(4, '0');
+            inputPreview.value = `${noUrutStr}/${bulanRomawi}/${kodeArsip}/${tahun}`;
+        } else {
+            inputPreview.value = "";
+        }
+    }
+
+    function tambahAtauEditSuratPenomoran(e) {
+        e.preventDefault();
+        const jenis = document.getElementById('jenisDokumenPenomoran').value;
+        const tgl = document.getElementById('tanggalSuratPenomoran').value;
+        const nomorLengkap = document.getElementById('previewNomorPenomoran').value;
+        const editId = document.getElementById('editSuratIdPenomoran').value;
+        
+        const ajuanIndex = dataAjuanPenomoran.findIndex(a => a.id === aktifAjuanIdPenomoran);
+
+        if (editId) {
+            const suratIndex = dataAjuanPenomoran[ajuanIndex].listSurat.findIndex(s => s.id === editId);
+            dataAjuanPenomoran[ajuanIndex].listSurat[suratIndex].jenis = jenis;
+            dataAjuanPenomoran[ajuanIndex].listSurat[suratIndex].tanggal = tgl;
+            dataAjuanPenomoran[ajuanIndex].listSurat[suratIndex].nomorLengkap = nomorLengkap;
+        } else {
+            const dateObj = new Date(tgl);
+            const bulanAngka = String(dateObj.getMonth() + 1).padStart(2, '0'); 
+            const tahun = dateObj.getFullYear();
+            const keyBulanTahun = `${bulanAngka}-${tahun}`;
+            
+            const noDipakai = nomorBulananPenomoran[keyBulanTahun] || 1;
+
+            dataAjuanPenomoran[ajuanIndex].listSurat.push({
+                id: 'SRT-' + Date.now(),
+                jenis: jenis,
+                tanggal: tgl,
+                nomorLengkap: nomorLengkap,
+                nomorUrutAsli: noDipakai,
+                kunciBulan: keyBulanTahun
+            });
+            
+            nomorBulananPenomoran[keyBulanTahun] = noDipakai + 1; 
+        }
+
+        batalEditSuratPenomoran();
+        renderTabelSuratPenomoran();
+        simpanKeCloudPenomoran();
+    }
+
+    function siapkanEditSuratPenomoran(idSurat) {
+        const ajuan = dataAjuanPenomoran.find(a => a.id === aktifAjuanIdPenomoran);
+        const surat = ajuan.listSurat.find(s => s.id === idSurat);
+
+        document.getElementById('editSuratIdPenomoran').value = surat.id;
+        document.getElementById('editNomorUrutAsliPenomoran').value = surat.nomorUrutAsli;
+        document.getElementById('jenisDokumenPenomoran').value = surat.jenis;
+        document.getElementById('tanggalSuratPenomoran').value = surat.tanggal;
+        
+        document.getElementById('btnSubmitSuratPenomoran').innerHTML = "<i class='bi bi-check2'></i> Simpan Edit";
+        document.getElementById('btnSubmitSuratPenomoran').classList.replace('btn-primary', 'btn-warning');
+        document.getElementById('btnBatalEditPenomoran').classList.remove('d-none');
+        
+        previewNomorSuratPenomoran();
+    }
+
+    function batalEditSuratPenomoran() {
+        document.getElementById('formTambahSuratPenomoran').reset();
+        document.getElementById('editSuratIdPenomoran').value = '';
+        document.getElementById('editNomorUrutAsliPenomoran').value = '';
+        document.getElementById('previewNomorPenomoran').value = '';
+        
+        document.getElementById('btnSubmitSuratPenomoran').innerHTML = "<i class='bi bi-plus-lg'></i> Tambah";
+        document.getElementById('btnSubmitSuratPenomoran').classList.replace('btn-warning', 'btn-primary');
+        document.getElementById('btnBatalEditPenomoran').classList.add('d-none');
+    }
+
+    function hapusSuratPenomoran(idSurat) {
+        if(confirm("Hapus nomor surat ini dari server?")) {
+            const ajuanIndex = dataAjuanPenomoran.findIndex(a => a.id === aktifAjuanIdPenomoran);
+            dataAjuanPenomoran[ajuanIndex].listSurat = dataAjuanPenomoran[ajuanIndex].listSurat.filter(s => s.id !== idSurat);
+            renderTabelSuratPenomoran();
+            simpanKeCloudPenomoran();
+        }
+    }
+
+    function renderTabelSuratPenomoran() {
+        const tbody = document.getElementById('tabelSuratPenomoran');
+        const ajuan = dataAjuanPenomoran.find(a => a.id === aktifAjuanIdPenomoran);
+        if(!tbody || !ajuan) return;
+        tbody.innerHTML = '';
+
+        if(ajuan.listSurat.length === 0){
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4"><i class="bi bi-file-earmark-x fs-4 d-block mb-2"></i> Belum ada surat yang diterbitkan.</td></tr>`;
+            return;
+        }
+
+        const sortedSurat = [...ajuan.listSurat].sort((a,b) => new Date(a.tanggal) - new Date(b.tanggal));
+
+        sortedSurat.forEach((surat) => {
+            const tglFmt = new Date(surat.tanggal).toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year:'numeric'});
+            tbody.innerHTML += `
+                <tr>
+                    <td class="text-center fw-bold text-secondary bg-light">${String(surat.nomorUrutAsli).padStart(4, '0')}</td>
+                    <td>${surat.jenis}</td>
+                    <td class="text-success fw-bold">${surat.nomorLengkap}</td>
+                    <td>${tglFmt}</td>
+                    <td class="text-center aksi-kolom-penomoran">
+                        <button class="btn btn-action btn-outline-warning" onclick="siapkanEditSuratPenomoran('${surat.id}')" title="Edit"><i class="bi bi-pencil-fill"></i></button>
+                        <button class="btn btn-action btn-outline-danger mx-1" onclick="hapusSuratPenomoran('${surat.id}')" title="Hapus"><i class="bi bi-trash-fill"></i></button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    function renderRekapGlobalPenomoran() {
+        const tbody = document.getElementById('tabelRekapGlobalPenomoran');
+        if(!tbody) return;
+        tbody.innerHTML = '';
+        let semuaSurat = [];
+        dataAjuanPenomoran.forEach(ajuan => {
+            ajuan.listSurat.forEach(surat => {
+                semuaSurat.push({ ...surat, pekerjaan: ajuan.pekerjaan, penyedia: ajuan.penyedia });
+            });
+        });
+        
+        semuaSurat.sort((a, b) => {
+            const dateA = new Date(a.tanggal);
+            const dateB = new Date(b.tanggal);
+            if (dateA < dateB) return -1;
+            if (dateA > dateB) return 1;
+            return a.nomorUrutAsli - b.nomorUrutAsli;
+        });
+        
+        if(semuaSurat.length === 0) {
+             return tbody.innerHTML = `
+                <tr><td colspan="6">
+                    <div class="empty-state">
+                        <i class="bi bi-file-earmark-x"></i>
+                        <h5>Belum ada surat diterbitkan</h5>
+                    </div>
+                </td></tr>`;
+        }
+
+        semuaSurat.forEach(s => {
+            const tglFmt = new Date(s.tanggal).toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year:'numeric'});
+            tbody.innerHTML += `
+                <tr>
+                    <td class="text-center fw-bold text-secondary">${String(s.nomorUrutAsli).padStart(4, '0')}</td>
+                    <td class="text-primary fw-bold"><i class="bi bi-hash text-muted"></i> ${s.nomorLengkap}</td>
+                    <td>${s.jenis}</td>
+                    <td>${tglFmt}</td>
+                    <td class="text-muted"><small>${s.pekerjaan}</small></td>
+                    <td class="fw-semibold text-slate-700">${s.penyedia}</td>
+                </tr>
+            `;
+        });
+    }
+
+    function unduhPDFPenomoran() {
+        const elemen = document.getElementById('areaCetakPDFPenomoran');
+        document.getElementById('kopPDFPenomoran').classList.remove('d-none');
+        document.getElementById('kopKerjaPenomoran').innerText = document.getElementById('infoPekerjaanPenomoran').innerText;
+        document.getElementById('kopPenyediaDataPenomoran').innerText = document.getElementById('infoPenyediaPenomoran').innerText;
+        
+        const aksiKolom = document.querySelectorAll('.aksi-kolom-penomoran');
+        aksiKolom.forEach(el => el.style.display = 'none');
+
+        const opt = {
+            margin: 10,
+            filename: 'Daftar_Nomor_Surat.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+        };
+
+        html2pdf().set(opt).from(elemen).save().then(() => {
+            document.getElementById('kopPDFPenomoran').classList.add('d-none');
+            aksiKolom.forEach(el => el.style.display = '');
+        });
+    }
+
+    // Inisialisasi awal aplikasi
+    document.getElementById('iframeDB').src = linkDB;
+    renderMasterSettings();
+    muatDataDariSpreadsheet();
+    inisialisasiPenomoran();
+</script>
+
+</body>
+</html>
