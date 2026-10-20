@@ -19,6 +19,7 @@
     <!-- Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
@@ -33,6 +34,12 @@
         :root { --brand-blue: #067AC1; --brand-yellow: #F9A703; }
         .table-container thead th { position: sticky; top: 0; z-index: 10; background: #f8fafc; }
         .dark .table-container thead th { background: #1e293b; }
+        .table-container #rekapThead tr:nth-child(2) th { top: 32px; }
+        /* Keep the group/name column visible while the recap matrix scrolls sideways. */
+        .table-container:has(#rekapThead) table { border-collapse: separate; border-spacing: 0; }
+        .table-container #rekapThead tr:first-child th:first-child { position: sticky; left: 0; z-index: 30; }
+        .table-container #tabelMatriksRekap td:first-child { position: sticky; left: 0; z-index: 15; background: #fff; }
+        .dark .table-container #tabelMatriksRekap td:first-child { background: #1e293b; }
         
         /* Modal Backdrop Custom */
         .modal-backdrop-custom {
@@ -222,55 +229,41 @@
 
         <!-- ================= TAB 2: MATRIKS REKAP PENGADAAN ================= -->
         <div id="tab-rekap" class="tab-content">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 border-l-4 border-l-blue-500">
-                    <p class="text-xs text-slate-500 font-bold mb-1">TOTAL KESELURUHAN KONTRAK</p>
-                    <h3 class="text-2xl font-black text-slate-800 dark:text-white" id="rekapTotalPaket">0 Paket</h3>
-                </div>
-                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 border-l-4 border-l-emerald-500">
-                    <p class="text-xs text-slate-500 font-bold mb-1">AKUMULASI NILAI KONTRAK</p>
-                    <h3 class="text-2xl font-black text-emerald-600 dark:text-emerald-400" id="rekapTotalNilai">Rp 0</h3>
+            <div class="rounded-2xl bg-gradient-to-r from-[#075985] to-[#067AC1] p-4 text-white shadow-sm mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div><div class="text-[10px] font-bold uppercase tracking-[.18em] text-sky-100">Pelaporan Pengadaan</div><h2 class="mt-1 text-lg font-extrabold">Matriks Rekap & Realisasi</h2><p id="rekapRingkasanFilter" class="mt-1 text-[11px] text-sky-100">Ringkasan seluruh data yang tersedia</p></div>
+                <div class="flex flex-wrap gap-2"><button onclick="eksporMatriksExcel()" class="rounded-lg bg-white px-3 py-2 text-xs font-bold text-emerald-800 shadow hover:bg-emerald-50"><i class="fas fa-file-excel mr-1"></i> Excel</button><button onclick="eksporMatriksPDF()" class="rounded-lg bg-white/15 px-3 py-2 text-xs font-bold text-white ring-1 ring-white/40 hover:bg-white/25"><i class="fas fa-file-pdf mr-1"></i> PDF</button></div>
+            </div>
+
+            <div class="mb-4 rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                <div class="mb-2 flex flex-wrap items-center justify-between gap-2"><div><h3 class="text-xs font-bold text-slate-800 dark:text-white"><i class="fas fa-sliders text-[#067AC1] mr-1.5"></i>Filter Laporan</h3><p class="text-[10px] text-slate-500 dark:text-slate-400">Semua filter ikut diterapkan ke matriks, Excel, dan PDF.</p></div><button onclick="resetFilterRekap()" class="rounded-lg border border-slate-200 px-3 py-1.5 text-[10px] font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"><i class="fas fa-rotate-left mr-1"></i>Reset</button></div>
+                <div class="grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-8">
+                    <label class="text-[10px] font-semibold text-slate-500">Kelompok Rekap<select id="filterRekapKelompok" onchange="renderMatriksRekap()" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-white"><option value="pic">Petugas Pengadaan</option><option value="ppk">PPK</option><option value="pp">PP / POKMIL</option><option value="all">Keseluruhan</option></select></label>
+                    <label class="text-[10px] font-semibold text-slate-500">Filter Personel<select id="filterRekapPeran" onchange="perbaruiPilihanPersonelRekap()" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-white"><option value="all">Semua personel</option><option value="pic">Petugas Pengadaan</option><option value="ppk">PPK</option><option value="pp">PP / POKMIL</option></select></label>
+                    <label class="text-[10px] font-semibold text-slate-500">Nama Personel<select id="filterRekapPersonel" onchange="renderMatriksRekap()" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-white"><option value="">Semua nama</option></select></label>
+                    <label class="text-[10px] font-semibold text-slate-500">Tanggal Acuan<select id="filterRekapTanggal" onchange="perbaruiTahunRekap()" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-white"><option value="ajuan">Tanggal Ajuan</option><option value="kontrak">Tanggal Kontrak / SPK</option><option value="realisasi">Tanggal Penyelesaian / Realisasi</option></select></label>
+                    <label class="text-[10px] font-semibold text-slate-500">Periode<select id="filterRekapPeriode" onchange="ubahJenisPeriodeRekap()" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-white"><option value="all">Semua periode</option><option value="year">Tahunan</option><option value="semester">Semester</option><option value="quarter">Triwulan</option></select></label>
+                    <label id="wrapTahunRekap" class="hidden text-[10px] font-semibold text-slate-500">Tahun<select id="filterRekapTahun" onchange="renderMatriksRekap()" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-white"><option value="">Semua tahun</option></select></label>
+                    <label id="wrapRincianPeriodeRekap" class="hidden text-[10px] font-semibold text-slate-500">Bagian Periode<select id="filterRekapBagian" onchange="renderMatriksRekap()" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-white"></select></label>
+                    <label class="text-[10px] font-semibold text-slate-500">Status Pekerjaan / Dokumen<select id="filterRekapStatus" onchange="renderMatriksRekap()" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-white"><option value="">Semua status</option></select></label>
+                    <label class="text-[10px] font-semibold text-slate-500 xl:col-span-2">Cari Pekerjaan / Penyedia<input id="filterRekapCari" oninput="renderMatriksRekap()" type="search" placeholder="Ketik kata kunci..." class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-white"></label>
+                    <div class="flex items-end text-[10px] text-slate-500 dark:text-slate-400 xl:col-span-3"><p id="catatanTanggalRekap" class="rounded-lg bg-amber-50 px-2.5 py-2 text-amber-800 dark:bg-amber-900/20 dark:text-amber-200">Untuk laporan realisasi, gunakan tanggal penyelesaian. Pekerjaan lama perlu dilengkapi tanggal selesai agar masuk periode yang tepat.</p></div>
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-slate-800 rounded-xl shadow border border-slate-200 dark:border-slate-700 overflow-hidden">
-                <div class="p-3 bg-slate-100 dark:bg-slate-900 border-b dark:border-slate-700 flex justify-between items-center flex-wrap gap-2">
-                    <h3 class="text-sm font-bold text-slate-700 dark:text-slate-200">Matriks Rekapitulasi Kontrak per Petugas Pengadaan</h3>
-                    <button onclick="eksporRekapCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded text-xs font-bold transition"><i class="fas fa-file-csv mr-1"></i> Unduh Matriks Rekap (CSV)</button>
-                </div>
-                <div class="table-container custom-scroll">
-                    <table class="w-full text-center border-collapse text-[11px] whitespace-nowrap">
-                        <thead>
-                            <tr class="bg-slate-100 dark:bg-slate-900 border-b dark:border-slate-700">
-                                <th rowspan="2" class="p-2 border font-bold bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200 min-w-[130px]">Petugas Pengadaan</th>
-                                <th rowspan="2" class="p-2 border font-bold bg-rose-500 text-white">JUMLAH KONTRAK</th>
-                                <th colspan="4" class="p-2 border font-bold bg-cyan-600 text-white">Metode Pembayaran</th>
-                                <th colspan="6" class="p-2 border font-bold bg-blue-600 text-white">Penetapan Barang / Jasa</th>
-                                <th colspan="3" class="p-2 border font-bold bg-slate-600 text-white">Status Dokumen</th>
-                                <th colspan="3" class="p-2 border font-bold bg-slate-800 text-white">Pencatatan di SPSE</th>
-                            </tr>
-                            <tr class="bg-slate-50 dark:bg-slate-800 font-semibold">
-                                <th class="p-1 border">LS</th>
-                                <th class="p-1 border">LS Kontrak</th>
-                                <th class="p-1 border">UP/TUP</th>
-                                <th class="p-1 border">UP/TUP Kontrak</th>
-                                <th class="p-1 border">Barang (B)</th>
-                                <th class="p-1 border">Konstruksi (PK)</th>
-                                <th class="p-1 border">Jasa Kons. (JK)</th>
-                                <th class="p-1 border">Jasa Akom. (JL)</th>
-                                <th class="p-1 border">Jasa Konsum. (JL)</th>
-                                <th class="p-1 border">Jasa Lainnya (JL)</th>
-                                <th class="p-1 border">Proses Dokumen</th>
-                                <th class="p-1 border">TTD PPK</th>
-                                <th class="p-1 border">Arsip PIC</th>
-                                <th class="p-1 border">Belum Tercatat</th>
-                                <th class="p-1 border">Sudah Draf</th>
-                                <th class="p-1 border">Paket Selesai</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabelMatriksRekap" class="divide-y dark:divide-slate-700"></tbody>
-                    </table>
-                </div>
+            <div class="mb-4 grid grid-cols-2 gap-3 md:grid-cols-3">
+                <div class="rounded-xl border border-slate-200 border-l-4 border-l-blue-600 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-800"><p class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Pekerjaan Terpilih</p><div id="rekapTotalPaket" class="mt-1 text-xl font-extrabold text-slate-800 dark:text-white">0 Paket</div></div>
+                <div class="rounded-xl border border-slate-200 border-l-4 border-l-emerald-600 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-800"><p class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Nilai Kontrak Terpilih</p><div id="rekapTotalNilai" class="mt-1 text-xl font-extrabold text-emerald-700 dark:text-emerald-400">Rp 0</div></div>
+                <div class="col-span-2 rounded-xl border border-slate-200 border-l-4 border-l-amber-500 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-800 md:col-span-1"><p class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Paket Berstatus Selesai (SPSE)</p><div id="rekapPaketSelesai" class="mt-1 text-xl font-extrabold text-slate-800 dark:text-white">0 Paket</div></div>
+            </div>
+
+            <section class="mb-4">
+                <div class="mb-2"><h3 class="text-xs font-bold text-slate-800 dark:text-white">Ringkasan per Penanggung Jawab</h3><p class="text-[10px] text-slate-500 dark:text-slate-400">Tiga rekap ini selalu ditampilkan bersama dan mengikuti filter laporan di atas.</p></div>
+                <div id="rekapRingkasPeran" class="grid grid-cols-1 gap-3 lg:grid-cols-3"></div>
+            </section>
+
+            <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 bg-slate-50 px-3 py-2.5 dark:border-slate-700 dark:bg-slate-900"><div><h3 id="judulMatriksRekap" class="text-xs font-bold text-slate-800 dark:text-white">Rekap per Petugas Pengadaan</h3><p class="text-[10px] text-slate-500 dark:text-slate-400">Jumlah pekerjaan dan rincian kategori mengikuti master data aplikasi.</p></div><span id="rekapBadgeBaris" class="rounded-full bg-sky-100 px-2.5 py-1 text-[10px] font-bold text-sky-800 dark:bg-sky-900/50 dark:text-sky-200">0 kelompok</span></div>
+                <div class="table-container custom-scroll" style="max-height:55vh"><table class="w-full border-collapse text-center text-[10px] whitespace-nowrap"><thead id="rekapThead"></thead><tbody id="tabelMatriksRekap" class="divide-y dark:divide-slate-700"></tbody></table></div>
             </div>
         </div>
 
@@ -510,7 +503,7 @@
                         <input type="text" id="namaPekerjaan" required class="w-full px-3 py-1.5 border rounded dark:bg-slate-900 dark:border-slate-700">
                     </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
                     <div>
                         <label class="block font-semibold mb-1">Review</label>
                         <select id="review" class="w-full px-3 py-1.5 border rounded dark:bg-slate-900 dark:border-slate-700">
@@ -527,6 +520,10 @@
                     <div>
                         <label class="block font-semibold mb-1">Link Dokumen Terkait / Keterangan</label>
                         <input type="text" id="linkDokumen" placeholder="URL / Keterangan" class="w-full px-3 py-1.5 border rounded dark:bg-slate-900 dark:border-slate-700">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Tanggal Penyelesaian / Realisasi</label>
+                        <input type="date" id="tglPenyelesaian" title="Diisi setelah pekerjaan selesai; dipakai untuk laporan realisasi per periode." class="w-full px-3 py-1.5 border rounded dark:bg-slate-900 dark:border-slate-700">
                     </div>
                 </div>
 
@@ -1178,6 +1175,7 @@
                             id: pick(item, ['ID', 'id']),
                             tim: pick(item, ['Tim yang Mengajukan', 'Tim']),
                             tglAjuan: pick(item, ['Tanggal Ajuan']),
+                            tglPenyelesaian: pick(item, ['Tanggal Penyelesaian']),
                             namaPekerjaan: pick(item, ['Nama Pekerjaan']),
                             review: pick(item, ['Review'], 'Review PPK'),
                             durasiWaktu: pick(item, ['Durasi Waktu'], '-'),
@@ -1497,6 +1495,7 @@
                 id: editId ? editId : Date.now(),
                 tim: document.getElementById('tim').value,
                 tglAjuan: document.getElementById('tglAjuan').value,
+                tglPenyelesaian: document.getElementById('tglPenyelesaian').value || '',
                 namaPekerjaan: document.getElementById('namaPekerjaan').value,
                 review: document.getElementById('review').value,
                 durasiWaktu: document.getElementById('durasiWaktu').value || '-',
@@ -1682,6 +1681,7 @@
             document.getElementById('editId').value = item.id;
             document.getElementById('tim').value = item.tim || '';
             document.getElementById('tglAjuan').value = formatInputDate(item.tglAjuan);
+            document.getElementById('tglPenyelesaian').value = formatInputDate(item.tglPenyelesaian);
             document.getElementById('namaPekerjaan').value = item.namaPekerjaan || '';
             document.getElementById('review').value = item.review || 'Review PPK';
             document.getElementById('durasiWaktu').value = item.durasiWaktu || '';
@@ -1773,7 +1773,7 @@
                 ['a.n. Rekening', value(vendor['Atas Nama Rekening'])],
                 ['No. Rekening', value(vendor['Nomor Rekening'])],
                 ['Jangka Waktu Pekerjaan', value(item.durasiWaktu)],
-                ['Tanggal Penyelesaian Pekerjaan', '-'],
+                ['Tanggal Penyelesaian Pekerjaan', formatTanggalRingkasan(item.tglPenyelesaian)],
                 ['Nomor BAPHP', formatDokumen(baphp && baphp.nomorLengkap, baphp && baphp.tanggal)],
                 ['Nomor BAST', formatDokumen(value(bast && bast.nomorLengkap, value(spk.noBast)), tanggalDokumen(bast, spk.tglBast))],
                 ['Nomor Invoice/Tagihan', '-'],
@@ -1853,11 +1853,194 @@
             });
         }
 
+        let rekapFilterDiinisialisasi = false;
+        const daftarSpseRekap = ["Belum Tercatat", "Sudah Draf", "Paket Selesai"];
+        function parseTanggalRekap(value) {
+            if (value === null || value === undefined || value === '') return null;
+            if (value instanceof Date && !isNaN(value.getTime())) return value;
+            if (typeof value === 'number' && value > 20000 && value < 80000) return new Date(Date.UTC(1899, 11, 30) + value * 86400000);
+            const text = String(value).trim();
+            const iso = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+            if (iso) return new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]));
+            const monthNames = { januari:0, jan:0, februari:1, feb:1, maret:2, mar:2, april:3, apr:3, mei:4, juni:5, jun:5, juli:6, jul:6, agustus:7, agu:7, agt:7, september:8, sep:8, oktober:9, okt:9, november:10, nov:10, desember:11, des:11 };
+            const monthYear = text.toLocaleLowerCase('id').match(/([a-z]+)\s+(\d{4})/);
+            if (monthYear && monthNames[monthYear[1]] !== undefined) return new Date(Number(monthYear[2]), monthNames[monthYear[1]], 1);
+            const dayMonthYear = text.toLocaleLowerCase('id').match(/^(\d{1,2})\s+([a-z]+)\s+(\d{4})/);
+            if (dayMonthYear && monthNames[dayMonthYear[2]] !== undefined) return new Date(Number(dayMonthYear[3]), monthNames[dayMonthYear[2]], Number(dayMonthYear[1]));
+            const dmy = text.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+            if (dmy) return new Date(Number(dmy[3]), Number(dmy[2]) - 1, Number(dmy[1]));
+            const parsed = new Date(text);
+            return isNaN(parsed.getTime()) ? null : parsed;
+        }
+        function perbaruiPilihanPersonelRekap() {
+            const role = document.getElementById('filterRekapPeran').value;
+            const select = document.getElementById('filterRekapPersonel');
+            const oldValue = select.value;
+            const property = { pic: 'pic', ppk: 'ppk', pp: 'pokmil' }[role];
+            const names = role === 'all' ? [] : [...new Set(dataPengadaan.map(item => String(item[property] || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'id'));
+            select.innerHTML = `<option value="">${role === 'all' ? 'Semua nama' : 'Semua ' + ({ pic:'petugas', ppk:'PPK', pp:'PP / POKMIL' }[role])}</option>` + names.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
+            select.value = names.includes(oldValue) ? oldValue : '';
+            renderMatriksRekap();
+        }
+        function perbaruiTahunRekap() {
+            const dateMode = document.getElementById('filterRekapTanggal').value;
+            const key = dateMode === 'kontrak' ? 'tglKontrak' : (dateMode === 'realisasi' ? 'tglPenyelesaian' : 'tglAjuan');
+            const select = document.getElementById('filterRekapTahun');
+            const previous = select.value;
+            const years = [...new Set(dataPengadaan.map(item => parseTanggalRekap(item[key])?.getFullYear()).filter(Boolean))].sort((a, b) => b - a);
+            select.innerHTML = '<option value="">Semua tahun</option>' + years.map(year => `<option value="${year}">${year}</option>`).join('');
+            select.value = years.map(String).includes(previous) ? previous : (years.length ? String(years[0]) : '');
+            const note = document.getElementById('catatanTanggalRekap');
+            if (dateMode === 'realisasi') note.textContent = years.length ? 'Periode realisasi mengikuti tanggal penyelesaian yang diisi pada data pekerjaan. Data lama tanpa tanggal selesai tidak masuk ketika filter periode dipakai.' : 'Belum ada tanggal penyelesaian tercatat. Isi tanggal pada form pekerjaan; laporan periode realisasi akan tersedia setelah itu.';
+            else note.textContent = 'Untuk laporan pekerjaan per periode, pilih tanggal ajuan atau tanggal kontrak/SPK. Untuk laporan realisasi selesai, pilih tanggal penyelesaian.';
+            renderMatriksRekap();
+        }
+        function setupFilterRekap() {
+            const status = document.getElementById('filterRekapStatus');
+            const selectedStatus = status.value;
+            const statuses = [
+                ...[...new Set(dataPengadaan.map(item => String(item.review || '').trim()).filter(Boolean))].map(v => [`review:${v}`, `Review · ${v}`]),
+                ...[...new Set(dataPengadaan.map(item => String(item.statusDokumen || '').trim()).filter(Boolean))].map(v => [`dokumen:${v}`, `Dokumen · ${v}`]),
+                ...[...new Set(dataPengadaan.map(item => String(item.spse || '').trim()).filter(Boolean))].map(v => [`spse:${v}`, `SPSE · ${v}`])
+            ];
+            status.innerHTML = '<option value="">Semua status</option>' + statuses.map(([value, label]) => `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`).join('');
+            status.value = statuses.some(([value]) => value === selectedStatus) ? selectedStatus : '';
+            perbaruiPilihanPersonelRekap();
+            perbaruiTahunRekap();
+            rekapFilterDiinisialisasi = true;
+        }
+        function ubahJenisPeriodeRekap() {
+            const type = document.getElementById('filterRekapPeriode').value;
+            document.getElementById('wrapTahunRekap').classList.toggle('hidden', type === 'all');
+            document.getElementById('wrapRincianPeriodeRekap').classList.toggle('hidden', type !== 'semester' && type !== 'quarter');
+            const part = document.getElementById('filterRekapBagian');
+            part.innerHTML = type === 'semester' ? '<option value="1">Semester 1</option><option value="2">Semester 2</option>' : '<option value="1">Triwulan 1</option><option value="2">Triwulan 2</option><option value="3">Triwulan 3</option><option value="4">Triwulan 4</option>';
+            renderMatriksRekap();
+        }
+        function ambilDataFilterRekap() {
+            const role = document.getElementById('filterRekapPeran').value;
+            const person = document.getElementById('filterRekapPersonel').value;
+            const dateMode = document.getElementById('filterRekapTanggal').value;
+            const dateKey = dateMode === 'kontrak' ? 'tglKontrak' : (dateMode === 'realisasi' ? 'tglPenyelesaian' : 'tglAjuan');
+            const period = document.getElementById('filterRekapPeriode').value;
+            const year = document.getElementById('filterRekapTahun').value;
+            const part = Number(document.getElementById('filterRekapBagian').value || 0);
+            const status = document.getElementById('filterRekapStatus').value;
+            const query = document.getElementById('filterRekapCari').value.trim().toLocaleLowerCase('id');
+            return dataPengadaan.filter(item => {
+                if (role !== 'all' && person && String(item[{ pic:'pic', ppk:'ppk', pp:'pokmil' }[role]] || '').trim() !== person) return false;
+                if (status.startsWith('review:') && String(item.review || '') !== status.slice(7)) return false;
+                if (status.startsWith('dokumen:') && String(item.statusDokumen || '') !== status.slice(8)) return false;
+                if (status.startsWith('spse:') && String(item.spse || '') !== status.slice(5)) return false;
+                if (query && ![item.namaPekerjaan, item.namaPenyedia, item.kodeMak].some(v => String(v || '').toLocaleLowerCase('id').includes(query))) return false;
+                if (period !== 'all') {
+                    const date = parseTanggalRekap(item[dateKey]);
+                    if (!date || !year || date.getFullYear() !== Number(year)) return false;
+                    if (period === 'semester' && Math.ceil((date.getMonth() + 1) / 6) !== part) return false;
+                    if (period === 'quarter' && Math.ceil((date.getMonth() + 1) / 3) !== part) return false;
+                }
+                return true;
+            });
+        }
+        function buatAgregatRekap(items) {
+            const groupBy = document.getElementById('filterRekapKelompok').value;
+            const property = { pic:'pic', ppk:'ppk', pp:'pokmil' }[groupBy];
+            const label = { pic:'Petugas Pengadaan', ppk:'PPK', pp:'PP / POKMIL', all:'Keseluruhan' }[groupBy];
+            const metode = masterData.metodeBayar || [], penetapan = masterData.penetapan || [], dokumen = masterData.statusDokumen || [];
+            const buckets = new Map();
+            items.forEach(item => {
+                const key = groupBy === 'all' ? 'Keseluruhan' : (String(item[property] || '').trim() || '(Belum diisi)');
+                if (!buckets.has(key)) buckets.set(key, { nama:key, jumlah:0, nilai:0, metode:{}, penetapan:{}, dokumen:{}, spse:{} });
+                const row = buckets.get(key); row.jumlah++; row.nilai += Number(item.nilaiKontrak || 0);
+                metode.forEach(v => { if (!row.metode[v]) row.metode[v] = 0; if (item.metodeBayar === v) row.metode[v]++; });
+                penetapan.forEach(v => { if (!row.penetapan[v]) row.penetapan[v] = 0; if (item.penetapan === v) row.penetapan[v]++; });
+                dokumen.forEach(v => { if (!row.dokumen[v]) row.dokumen[v] = 0; if (item.statusDokumen === v) row.dokumen[v]++; });
+                daftarSpseRekap.forEach(v => { if (!row.spse[v]) row.spse[v] = 0; if ((item.spse || 'Belum Tercatat') === v) row.spse[v]++; });
+            });
+            const rows = [...buckets.values()].sort((a,b) => a.nama.localeCompare(b.nama, 'id'));
+            const total = { nama:'Total Terfilter', jumlah:items.length, nilai:items.reduce((sum, item) => sum + Number(item.nilaiKontrak || 0), 0), metode:{}, penetapan:{}, dokumen:{}, spse:{} };
+            [...metode.map(v=>['metode',v]), ...penetapan.map(v=>['penetapan',v]), ...dokumen.map(v=>['dokumen',v]), ...daftarSpseRekap.map(v=>['spse',v])].forEach(([cat,v]) => { total[cat][v] = rows.reduce((sum,row) => sum + (row[cat][v] || 0), 0); });
+            return { rows, total, label, metode, penetapan, dokumen, spse:daftarSpseRekap };
+        }
+        function buatKeteranganFilterRekap() {
+            const period = document.getElementById('filterRekapPeriode').value;
+            const year = document.getElementById('filterRekapTahun').value;
+            const part = document.getElementById('filterRekapBagian').value;
+            const role = document.getElementById('filterRekapPeran').value;
+            const person = document.getElementById('filterRekapPersonel').value;
+            const roleName = { pic:'Petugas Pengadaan', ppk:'PPK', pp:'PP / POKMIL' }[role];
+            const dateMode = document.getElementById('filterRekapTanggal').value;
+            const dateName = dateMode === 'kontrak' ? 'tanggal kontrak/SPK' : (dateMode === 'realisasi' ? 'tanggal penyelesaian/realisasi' : 'tanggal ajuan');
+            let parts = [];
+            if (period === 'year') parts.push(`Tahun ${year || 'semua'}`);
+            if (period === 'semester') parts.push(`Semester ${part}, ${year || 'semua'}`);
+            if (period === 'quarter') parts.push(`Triwulan ${part}, ${year || 'semua'}`);
+            if (period !== 'all') parts.push(`berdasarkan ${dateName}`);
+            if (role !== 'all') parts.push(person ? `${roleName}: ${person}` : `Semua ${roleName}`);
+            const query = document.getElementById('filterRekapCari').value.trim(); if (query) parts.push(`kata kunci: ${query}`);
+            const statusSelect = document.getElementById('filterRekapStatus'); if (statusSelect.value) parts.push(statusSelect.options[statusSelect.selectedIndex].text);
+            return parts.length ? parts.join(' · ') : 'Seluruh pekerjaan yang tersedia';
+        }
+        function renderRingkasanPeran(items) {
+            const container = document.getElementById('rekapRingkasPeran');
+            if (!container) return;
+            const roles = [
+                { key: 'pic', title: 'Petugas Pengadaan', icon: 'fa-user-tie', header: 'bg-sky-50', iconColor: 'text-sky-700 dark:text-sky-300' },
+                { key: 'ppk', title: 'PPK', icon: 'fa-user-shield', header: 'bg-indigo-50', iconColor: 'text-indigo-700 dark:text-indigo-300' },
+                { key: 'pokmil', title: 'PP / POKMIL', icon: 'fa-users', header: 'bg-emerald-50', iconColor: 'text-emerald-700 dark:text-emerald-300' }
+            ];
+            container.innerHTML = roles.map(role => {
+                const buckets = new Map();
+                items.forEach(item => {
+                    const name = (item[role.key] || '').trim() || 'Belum ditentukan';
+                    if (!buckets.has(name)) buckets.set(name, { name, count: 0, value: 0, completed: 0 });
+                    const row = buckets.get(name);
+                    row.count++;
+                    row.value += Number(item.nilaiKontrak) || 0;
+                });
+                const rows = [...buckets.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'id'));
+                const body = rows.length ? rows.map(row => `<tr class="border-t border-slate-100 dark:border-slate-700"><td class="max-w-[170px] truncate px-3 py-2 font-medium text-slate-700 dark:text-slate-200" title="${escapeHtml(row.name)}">${escapeHtml(row.name)}</td><td class="px-2 py-2 text-center tabular-nums">${row.count}</td><td class="whitespace-nowrap px-3 py-2 text-right tabular-nums">${formatRupiah(row.value)}</td></tr>`).join('') : `<tr><td colspan="3" class="px-3 py-8 text-center text-slate-400">Tidak ada data untuk filter ini.</td></tr>`;
+                const totalValue = rows.reduce((sum, row) => sum + row.value, 0);
+                return `<section class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800"><div class="flex items-center justify-between border-b border-slate-200 ${role.header} px-3 py-2 dark:border-slate-700 dark:bg-slate-900/50"><h3 class="text-xs font-bold text-slate-800 dark:text-slate-100"><i class="fas ${role.icon} mr-2 ${role.iconColor}"></i>${role.title}</h3><span class="rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-slate-500 dark:bg-slate-700 dark:text-slate-300">${rows.length} nama</span></div><div class="max-h-64 overflow-auto"><table class="w-full text-[11px]"><thead class="sticky top-0 z-[1] bg-slate-100 text-[9px] uppercase tracking-wide text-slate-500 dark:bg-slate-700 dark:text-slate-300"><tr><th class="px-3 py-2 text-left">Nama</th><th class="px-2 py-2">Pekerjaan</th><th class="px-3 py-2 text-right">Nilai Kontrak</th></tr></thead><tbody>${body}</tbody><tfoot class="sticky bottom-0 border-t-2 border-slate-300 bg-slate-50 font-bold text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"><tr><td class="px-3 py-2">Total</td><td class="px-2 py-2 text-center tabular-nums">${items.length}</td><td class="whitespace-nowrap px-3 py-2 text-right tabular-nums">${formatRupiah(totalValue)}</td></tr></tfoot></table></div></section>`;
+            }).join('');
+        }
+        function renderMatriksRekap() {
+            if (!document.getElementById('tabelMatriksRekap')) return;
+            const items = ambilDataFilterRekap();
+            renderRingkasanPeran(items);
+            const aggregate = buatAgregatRekap(items);
+            const { rows, total, label, metode, penetapan, dokumen, spse } = aggregate;
+            const thead = document.getElementById('rekapThead');
+            const groupLabel = document.getElementById('filterRekapKelompok').selectedOptions[0].text;
+            const groups = [["Metode Pembayaran", metode, 'bg-cyan-700'], ["Penetapan Barang / Jasa", penetapan, 'bg-blue-700'], ["Status Dokumen", dokumen, 'bg-slate-600'], ["Pencatatan di SPSE", spse, 'bg-indigo-900']];
+            const styleHeader = 'style="background-color:#334155;color:#fff"';
+            const styleKategori = { 'bg-cyan-700':'style="background-color:#0e7490;color:#fff"', 'bg-blue-700':'style="background-color:#1d4ed8;color:#fff"', 'bg-slate-600':'style="background-color:#475569;color:#fff"', 'bg-indigo-900':'style="background-color:#312e81;color:#fff"' };
+            thead.innerHTML = `<tr><th rowspan="2" ${styleHeader} class="sticky left-0 z-[12] min-w-[150px] border border-slate-300 p-2 text-left">${escapeHtml(groupLabel)}</th><th rowspan="2" style="background-color:#be123c;color:#fff" class="border border-slate-300 px-3 py-2">Jumlah<br>Pekerjaan</th><th rowspan="2" style="background-color:#065f46;color:#fff" class="border border-slate-300 px-3 py-2">Nilai Kontrak</th>${groups.map(([name,list,color]) => `<th colspan="${list.length}" ${styleKategori[color]} class="border border-slate-300 px-2 py-2">${escapeHtml(name)}</th>`).join('')}</tr><tr class="bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200">${groups.flatMap(([,list]) => list.map(name => `<th class="max-w-[150px] whitespace-normal border border-slate-300 bg-slate-100 px-2 py-1.5 text-slate-700 dark:bg-slate-800 dark:text-slate-200">${escapeHtml(name)}</th>`)).join('')}</tr>`;
+            const renderRow = (row, isTotal=false) => `<tr class="${isTotal ? 'bg-amber-100 font-extrabold text-slate-900 dark:bg-amber-900/40 dark:text-amber-100' : 'text-slate-700 hover:bg-sky-50 dark:text-slate-200 dark:hover:bg-slate-700/60'}"><td class="sticky left-0 z-[11] border border-slate-200 bg-white p-2 text-left font-semibold dark:border-slate-700 dark:bg-slate-800">${escapeHtml(row.nama)}</td><td class="border border-slate-200 px-2 py-1.5 font-bold dark:border-slate-700">${row.jumlah}</td><td class="border border-slate-200 px-2 py-1.5 text-right font-semibold dark:border-slate-700">${formatRupiah(row.nilai)}</td>${metode.map(v=>`<td class="border border-slate-200 px-2 py-1.5 dark:border-slate-700">${row.metode[v] || 0}</td>`).join('')}${penetapan.map(v=>`<td class="border border-slate-200 px-2 py-1.5 dark:border-slate-700">${row.penetapan[v] || 0}</td>`).join('')}${dokumen.map(v=>`<td class="border border-slate-200 px-2 py-1.5 dark:border-slate-700">${row.dokumen[v] || 0}</td>`).join('')}${spse.map(v=>`<td class="border border-slate-200 px-2 py-1.5 dark:border-slate-700">${row.spse[v] || 0}</td>`).join('')}</tr>`;
+            document.getElementById('tabelMatriksRekap').innerHTML = rows.length ? rows.map(row=>renderRow(row)).join('') + renderRow(total, true) : `<tr><td colspan="${3 + metode.length + penetapan.length + dokumen.length + spse.length}" class="p-8 text-center text-slate-500"><i class="fas fa-filter-circle-xmark mb-2 block text-2xl text-slate-300"></i>Tidak ada pekerjaan yang sesuai dengan filter.</td></tr>`;
+            const periodText = buatKeteranganFilterRekap();
+            document.getElementById('rekapTotalPaket').textContent = `${items.length} Pekerjaan`;
+            document.getElementById('rekapTotalNilai').textContent = formatRupiah(total.nilai);
+            document.getElementById('rekapPaketSelesai').textContent = `${items.filter(item => item.spse === 'Paket Selesai').length} Paket`;
+            document.getElementById('rekapRingkasanFilter').textContent = `${periodText} · Tanggal periode memakai ${document.getElementById('filterRekapTanggal').selectedOptions[0].text.toLocaleLowerCase('id')}.`;
+            document.getElementById('rekapBadgeBaris').textContent = `${rows.length} ${groupLabel.toLocaleLowerCase('id')}`;
+            document.getElementById('judulMatriksRekap').textContent = `Rekapitulasi per ${label}`;
+            return { items, aggregate, periodText };
+        }
+        function resetFilterRekap() {
+            document.getElementById('filterRekapKelompok').value = 'pic';
+            document.getElementById('filterRekapPeran').value = 'all';
+            document.getElementById('filterRekapPersonel').value = '';
+            document.getElementById('filterRekapTanggal').value = 'ajuan';
+            document.getElementById('filterRekapPeriode').value = 'all';
+            document.getElementById('filterRekapStatus').value = '';
+            document.getElementById('filterRekapCari').value = '';
+            ubahJenisPeriodeRekap(); perbaruiPilihanPersonelRekap(); perbaruiTahunRekap();
+        }
+
         function renderAplikasi() {
             const tbody = document.getElementById('tabelData');
-            const tbodyMatrix = document.getElementById('tabelMatriksRekap');
             tbody.innerHTML = '';
-            tbodyMatrix.innerHTML = '';
 
             const keyword = document.getElementById('cariKeyword').value.toLowerCase();
             const filterPicVal = document.getElementById('filterPic').value;
@@ -1869,9 +2052,6 @@
                 const matchStatus = filterStatusVal === "" || item.review === filterStatusVal;
                 return matchKeyword && matchPic && matchStatus;
             });
-
-            let totalNilai = 0;
-            dataPengadaan.forEach(item => totalNilai += item.nilaiKontrak);
 
             if (filteredData.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="5" class="text-center text-slate-500 py-6">Tidak ada data yang sesuai dengan filter/pencarian.</td></tr>`;
@@ -1917,7 +2097,7 @@
                                 <div><div class="text-[8px] font-bold uppercase tracking-wider text-slate-400">Rincian Anggaran</div><div class="text-slate-700 dark:text-slate-200">DIPA ${formatRupiah(item.nilaiPagu)} <span class="text-slate-300 mx-1">·</span> Pagu ${formatRupiah(item.paguKontrak)} <span class="text-slate-300 mx-1">·</span> HPS ${formatRupiah(item.hpsKontrak)}</div></div>
                                 <div><div class="text-[8px] font-bold uppercase tracking-wider text-slate-400">Metode & Belanja</div><div class="text-slate-700 dark:text-slate-200">${item.metodePekerjaan || '-'} <span class="text-slate-300 mx-1">·</span> ${item.jenisBelanja || '-'}</div></div>
                                 <div><div class="text-[8px] font-bold uppercase tracking-wider text-slate-400">Kontrak & Dokumen</div><div class="text-slate-700 dark:text-slate-200">${item.bentukKontrak || '-'} <span class="text-slate-400">${item.noKontrak && item.noKontrak !== '-' ? `· ${item.noKontrak}` : ''} ${item.tglKontrak && item.tglKontrak !== '-' ? `· ${item.tglKontrak}` : ''}</span></div></div>
-                                <div><div class="text-[8px] font-bold uppercase tracking-wider text-slate-400">Durasi, Status & Addendum</div><div class="text-slate-700 dark:text-slate-200">${item.durasiWaktu || '-'} <span class="text-slate-300 mx-1">·</span> ${item.statusDokumen || '-'} <span class="text-slate-300 mx-1">·</span> ${formatRupiah(item.nilaiAddendum)}</div></div>
+                                <div><div class="text-[8px] font-bold uppercase tracking-wider text-slate-400">Durasi, Penyelesaian & Status</div><div class="text-slate-700 dark:text-slate-200">${item.durasiWaktu || '-'} <span class="text-slate-300 mx-1">·</span> Selesai ${item.tglPenyelesaian || '-'} <span class="text-slate-300 mx-1">·</span> ${item.statusDokumen || '-'} <span class="text-slate-300 mx-1">·</span> Add. ${formatRupiah(item.nilaiAddendum)}</div></div>
                                 <div class="flex items-end"><div class="flex flex-wrap gap-x-3 gap-y-0.5">
                                     ${item.linkDokumen ? `<a href="${item.linkDokumen}" target="_blank" rel="noopener noreferrer" class="text-[#067AC1] dark:text-sky-300 hover:underline font-medium"><i class="fas fa-link mr-1"></i>Dokumen terkait</a>` : '<span class="text-slate-400">Belum ada dokumen terkait</span>'}
                                     ${item.linkScan ? `<a href="${item.linkScan}" target="_blank" rel="noopener noreferrer" class="text-[#067AC1] dark:text-sky-300 hover:underline font-medium"><i class="fas fa-file-pdf mr-1"></i>Scan kontrak</a>` : ''}
@@ -1931,81 +2111,18 @@
                 });
             }
 
-            const spseList = ["Belum Tercatat", "Sudah Draf", "Paket Selesai"];
-            let grandTotals = { 
-                kontrak: 0, 
-                metodeBayar: {}, 
-                penetapan: {},
-                statusDokumen: {},
-                spse: {}
-            };
-            
-            masterData.metodeBayar.forEach(m => grandTotals.metodeBayar[m] = 0);
-            masterData.penetapan.forEach(p => grandTotals.penetapan[p] = 0);
-            masterData.statusDokumen.forEach(s => grandTotals.statusDokumen[s] = 0);
-            spseList.forEach(s => grandTotals.spse[s] = 0);
-
-            masterData.pic.forEach(picName => {
-                let rowKontrak = dataPengadaan.filter(d => d.pic === picName);
-                let totalKontrakPIC = rowKontrak.length;
-                grandTotals.kontrak += totalKontrakPIC;
-
-                let tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 dark:hover:bg-slate-800 transition";
-                let htmlCols = `<td class="p-2 border font-bold text-left bg-slate-50 dark:bg-slate-900">${picName}</td><td class="p-2 border font-bold bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200">${totalKontrakPIC}</td>`;
-
-                masterData.metodeBayar.forEach(metode => {
-                    let count = rowKontrak.filter(d => d.metodeBayar === metode).length;
-                    grandTotals.metodeBayar[metode] += count;
-                    htmlCols += `<td class="p-1 border">${count}</td>`;
-                });
-
-                masterData.penetapan.forEach(pen => {
-                    let count = rowKontrak.filter(d => d.penetapan === pen).length;
-                    grandTotals.penetapan[pen] += count;
-                    htmlCols += `<td class="p-1 border">${count}</td>`;
-                });
-
-                masterData.statusDokumen.forEach(stat => {
-                    let count = rowKontrak.filter(d => d.statusDokumen === stat).length;
-                    grandTotals.statusDokumen[stat] += count;
-                    htmlCols += `<td class="p-1 border">${count}</td>`;
-                });
-
-                spseList.forEach(spseStat => {
-                    let count = rowKontrak.filter(d => d.spse === spseStat).length;
-                    grandTotals.spse[spseStat] += count;
-                    htmlCols += `<td class="p-1 border">${count}</td>`;
-                });
-
-                tr.innerHTML = htmlCols;
-                tbodyMatrix.appendChild(tr);
-            });
-
-            let trGrand = document.createElement('tr');
-            trGrand.className = 'font-bold bg-amber-400 text-slate-900';
-            let htmlGrand = `<td class="p-2 border">Grand Total</td><td class="p-2 border">${grandTotals.kontrak}</td>`;
-            
-            masterData.metodeBayar.forEach(metode => htmlGrand += `<td class="p-1 border">${grandTotals.metodeBayar[metode]}</td>`);
-            masterData.penetapan.forEach(pen => htmlGrand += `<td class="p-1 border">${grandTotals.penetapan[pen]}</td>`);
-            masterData.statusDokumen.forEach(stat => htmlGrand += `<td class="p-1 border">${grandTotals.statusDokumen[stat]}</td>`);
-            spseList.forEach(spseStat => htmlGrand += `<td class="p-1 border">${grandTotals.spse[spseStat]}</td>`);
-            
-            trGrand.innerHTML = htmlGrand;
-            tbodyMatrix.appendChild(trGrand);
-
-            document.getElementById('rekapTotalPaket').innerText = dataPengadaan.length + ' Paket';
-            document.getElementById('rekapTotalNilai').innerText = formatRupiah(totalNilai);
+            if (!rekapFilterDiinisialisasi) setupFilterRekap();
+            else { perbaruiPilihanPersonelRekap(); perbaruiTahunRekap(); renderMatriksRekap(); }
         }
 
         // ================= EXPORT FUNCTIONS =================
         function eksporKeCSV() {
             if (dataPengadaan.length === 0) return showToast("Belum ada data untuk diekspor!", "error");
-            let csvContent = "data:text/csv;charset=utf-8,No,Tim yang Mengajukan,Tanggal Ajuan,Nama Pekerjaan,Review,Durasi Waktu,Link Dokumen Terkait,PPK,Petugas Pengadaan,Petugas POKMIL/PP,Penetapan Barang/Jasa,Metode Pembayaran,Kode MAK,Nilai PAGU DIPA,Pagu Kontrak,HPS Kontrak,Nilai Kontrak,Metode Pekerjaan,Jenis Belanja,Dokumen Kontrak,Status Dokumen,Nomor Kontrak,Tanggal SPK,Nilai Kontrak (Sesuai Dok.),Nilai Addendum,Nama Penyedia,Link Scan Dokumen Kontrak,Pencatatan di SPSE\n";
+            let csvContent = "data:text/csv;charset=utf-8,No,Tim yang Mengajukan,Tanggal Ajuan,Tanggal Penyelesaian / Realisasi,Nama Pekerjaan,Review,Durasi Waktu,Link Dokumen Terkait,PPK,Petugas Pengadaan,Petugas POKMIL/PP,Penetapan Barang/Jasa,Metode Pembayaran,Kode MAK,Nilai PAGU DIPA,Pagu Kontrak,HPS Kontrak,Nilai Kontrak,Metode Pekerjaan,Jenis Belanja,Dokumen Kontrak,Status Dokumen,Nomor Kontrak,Tanggal SPK,Nilai Kontrak (Sesuai Dok.),Nilai Addendum,Nama Penyedia,Link Scan Dokumen Kontrak,Pencatatan di SPSE\n";
             
             dataPengadaan.forEach((item) => {
                 let row = [
-                    item.originalNo, `"${item.tim}"`, item.tglAjuan, `"${item.namaPekerjaan}"`, `"${item.review}"`, `"${item.durasiWaktu}"`, 
+                    item.originalNo, `"${item.tim}"`, item.tglAjuan, item.tglPenyelesaian || '', `"${item.namaPekerjaan}"`, `"${item.review}"`, `"${item.durasiWaktu}"`, 
                     `"${item.linkDokumen}"`, `"${item.ppk}"`, `"${item.pic}"`, `"${item.pokmil}"`, `"${item.penetapan}"`, `"${item.metodeBayar}"`, 
                     `"${item.kodeMak}"`, item.nilaiPagu, item.paguKontrak, item.hpsKontrak, item.nilaiKontrak, `"${item.metodePekerjaan}"`, 
                     `"${item.jenisBelanja}"`, `"${item.bentukKontrak}"`, `"${item.statusDokumen}"`, `"${item.noKontrak}"`, item.tglKontrak, 
@@ -2084,6 +2201,81 @@
             document.body.removeChild(link);
             showToast("Matriks Rekap berhasil diunduh!");
         }
+
+        function buatBarisDetailEksporRekap(items) {
+            return items.map(item => ({
+                "No.": item.originalNo, "Tim yang Mengajukan": item.tim, "Tanggal Ajuan": item.tglAjuan, "Tanggal Penyelesaian / Realisasi": item.tglPenyelesaian,
+                "Nama Pekerjaan": item.namaPekerjaan, "Review": item.review, "Durasi Waktu": item.durasiWaktu,
+                "Link Dokumen Terkait": item.linkDokumen, "PPK": item.ppk, "Petugas Pengadaan": item.pic,
+                "Petugas POKMIL/PP": item.pokmil, "Penetapan Barang/Jasa": item.penetapan,
+                "Metode Pembayaran": item.metodeBayar, "Kode MAK": item.kodeMak,
+                "Nilai PAGU DIPA": item.nilaiPagu, "Pagu Kontrak": item.paguKontrak, "HPS Kontrak": item.hpsKontrak,
+                "Nilai Kontrak": item.nilaiKontrak, "Metode Pekerjaan": item.metodePekerjaan,
+                "Jenis Belanja": item.jenisBelanja, "Dokumen Kontrak": item.bentukKontrak,
+                "Status Dokumen": item.statusDokumen, "Nomor Kontrak": item.noKontrak, "Tanggal SPK": item.tglKontrak,
+                "Nilai Kontrak (Sesuai Dok.)": item.nilaiSesuaiDok, "Nilai Addendum": item.nilaiAddendum,
+                "Nama Penyedia": item.namaPenyedia, "Link Scan Dokumen Kontrak": item.linkScan,
+                "Pencatatan di SPSE": item.spse
+            }));
+        }
+        function namaFileRekap() {
+            const safe = buatKeteranganFilterRekap().replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '').slice(0, 90) || 'Seluruh_Data';
+            return `Rekap_Pengadaan_${safe}`;
+        }
+        function eksporMatriksExcel() {
+            if (!window.XLSX) return showToast('Fitur Excel belum termuat. Periksa koneksi, lalu muat ulang aplikasi.', 'error');
+            const report = renderMatriksRekap();
+            if (!report.items.length) return showToast('Tidak ada data untuk filter laporan ini.', 'error');
+            const { items, aggregate, periodText } = report;
+            const { rows, total, label, metode, penetapan, dokumen, spse } = aggregate;
+            const header = ['Kelompok', 'Jumlah Pekerjaan', 'Nilai Kontrak', ...metode.map(x=>`Pembayaran · ${x}`), ...penetapan.map(x=>`Penetapan · ${x}`), ...dokumen.map(x=>`Status Dokumen · ${x}`), ...spse.map(x=>`SPSE · ${x}`)];
+            const toAggregateRow = row => [row.nama, row.jumlah, row.nilai, ...metode.map(x=>row.metode[x] || 0), ...penetapan.map(x=>row.penetapan[x] || 0), ...dokumen.map(x=>row.dokumen[x] || 0), ...spse.map(x=>row.spse[x] || 0)];
+            const wsSummary = XLSX.utils.aoa_to_sheet([
+                ['MATRIKS REKAP PENGADAAN'], ['Cakupan', periodText], ['Dikelompokkan berdasarkan', label], ['Jumlah pekerjaan', items.length], ['Akumulasi nilai kontrak', total.nilai], [], header,
+                ...rows.map(toAggregateRow), toAggregateRow(total)
+            ]);
+            wsSummary['!cols'] = header.map((_, i) => ({ wch: i < 3 ? (i === 0 ? 32 : 20) : 22 }));
+            const wsDetails = XLSX.utils.json_to_sheet(buatBarisDetailEksporRekap(items));
+            wsDetails['!cols'] = Object.keys(buatBarisDetailEksporRekap(items)[0]).map((key) => ({ wch: Math.min(36, Math.max(14, key.length + 2)) }));
+            const wsFilter = XLSX.utils.aoa_to_sheet([['KETERANGAN FILTER'], ['Filter diterapkan', periodText], ['Tanggal acuan', document.getElementById('filterRekapTanggal').selectedOptions[0].text], ['Periode', document.getElementById('filterRekapPeriode').selectedOptions[0].text], ['Pengelompokan', label], ['Catatan', 'Untuk laporan realisasi gunakan tanggal penyelesaian; pekerjaan lama perlu dilengkapi tanggal selesai.']]);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, wsSummary, 'Ringkasan');
+            XLSX.utils.book_append_sheet(workbook, wsDetails, 'Data Pekerjaan');
+            XLSX.utils.book_append_sheet(workbook, wsFilter, 'Filter & Catatan');
+            XLSX.writeFile(workbook, `${namaFileRekap()}.xlsx`);
+            showToast(`Excel berhasil dibuat (${items.length} pekerjaan).`);
+        }
+        async function eksporMatriksPDF() {
+            if (!window.html2pdf) return showToast('Fitur PDF belum termuat. Periksa koneksi, lalu muat ulang aplikasi.', 'error');
+            const report = renderMatriksRekap();
+            if (!report.items.length) return showToast('Tidak ada data untuk filter laporan ini.', 'error');
+            const { items, aggregate, periodText } = report;
+            const { rows, total, label, metode, penetapan, dokumen, spse } = aggregate;
+            const summaryHtml = [['Metode Pembayaran','metode',metode],['Penetapan Barang/Jasa','penetapan',penetapan],['Status Dokumen','dokumen',dokumen],['Pencatatan SPSE','spse',spse]].map(([title,key,options]) => `<h3 style="font-size:10px;margin:10px 0 4px">${escapeHtml(title)}</h3><table class="pdf-table"><thead><tr>${['Kelompok', 'Jumlah Pekerjaan', 'Nilai Kontrak', ...options].map(v=>`<th>${escapeHtml(v)}</th>`).join('')}</tr></thead><tbody>${[...rows,total].map(row=>`<tr><td>${escapeHtml(row.nama)}</td><td>${row.jumlah}</td><td>${escapeHtml(formatRupiah(row.nilai))}</td>${options.map(v=>`<td>${row[key][v] || 0}</td>`).join('')}</tr>`).join('')}</tbody></table>`).join('');
+            const detailFields = [
+                ['No.', 'originalNo'], ['Tim yang Mengajukan', 'tim'], ['Tanggal Ajuan', 'tglAjuan'], ['Tanggal Penyelesaian / Realisasi', 'tglPenyelesaian'], ['Review', 'review'], ['Durasi Waktu', 'durasiWaktu'],
+                ['Link Dokumen Terkait', 'linkDokumen'], ['PPK', 'ppk'], ['Petugas Pengadaan', 'pic'], ['Petugas POKMIL/PP', 'pokmil'], ['Penetapan Barang/Jasa', 'penetapan'],
+                ['Metode Pembayaran', 'metodeBayar'], ['Kode MAK', 'kodeMak'], ['Nilai PAGU DIPA', 'nilaiPagu'], ['Pagu Kontrak', 'paguKontrak'], ['HPS Kontrak', 'hpsKontrak'], ['Nilai Kontrak', 'nilaiKontrak'],
+                ['Metode Pekerjaan', 'metodePekerjaan'], ['Jenis Belanja', 'jenisBelanja'], ['Dokumen Kontrak', 'bentukKontrak'], ['Status Dokumen', 'statusDokumen'], ['Nomor Kontrak', 'noKontrak'], ['Tanggal SPK', 'tglKontrak'],
+                ['Nilai Kontrak (Sesuai Dok.)', 'nilaiSesuaiDok'], ['Nilai Addendum', 'nilaiAddendum'], ['Nama Penyedia', 'namaPenyedia'], ['Link Scan Dokumen Kontrak', 'linkScan'], ['Pencatatan di SPSE', 'spse']
+            ];
+            const cards = items.map((item, index) => `<section class="pdf-job"><h3>${index + 1}. ${escapeHtml(item.namaPekerjaan || '(Nama pekerjaan belum diisi)')}</h3><table class="pdf-detail">${detailFields.map(([name,key]) => {
+                let val = item[key];
+                if (['nilaiPagu','paguKontrak','hpsKontrak','nilaiKontrak','nilaiSesuaiDok','nilaiAddendum'].includes(key)) val = nilaiAdaRekap(val) ? formatRupiah(val) : '-';
+                if (val === undefined || val === null || val === '') val = '-';
+                return `<tr><th>${escapeHtml(name)}</th><td>${escapeHtml(val)}</td></tr>`;
+            }).join('')}</table></section>`).join('');
+            const container = document.createElement('div');
+            container.style.cssText = 'position:fixed;inset:0;z-index:99999;width:100vw;height:100vh;overflow:auto;background:#fff;color:#111827;padding:24px;font-family:Arial,sans-serif;';
+            container.innerHTML = `<div style="font-size:10px;color:#334155"><h1 style="font-size:20px;text-align:center;margin:0 0 5px">MATRIKS REKAP & DATA PENGADAAN</h1><p style="text-align:center;margin:0 0 16px">BBGTK Provinsi Jawa Barat · ${escapeHtml(new Date().toLocaleDateString('id-ID'))}</p><p><b>Cakupan:</b> ${escapeHtml(periodText)} · <b>Kelompok:</b> ${escapeHtml(label)}</p><p><b>Jumlah:</b> ${items.length} pekerjaan · <b>Akumulasi nilai kontrak:</b> ${escapeHtml(formatRupiah(total.nilai))}</p><p style="color:#92400e"><b>Catatan:</b> Periode realisasi mengikuti tanggal penyelesaian bila dipilih. Pekerjaan lama perlu dilengkapi tanggal selesai.</p><h2 style="font-size:14px;margin:16px 0 6px">Matriks Rekap</h2>${summaryHtml}<h2 style="font-size:14px;margin:20px 0 8px">Rincian Pekerjaan (${items.length})</h2>${cards}<style>.pdf-table,.pdf-detail{width:100%;border-collapse:collapse;font-size:7px;margin-bottom:10px}.pdf-table th,.pdf-table td,.pdf-detail th,.pdf-detail td{border:1px solid #94a3b8;padding:3px;text-align:left;vertical-align:top}.pdf-table th{background:#e2e8f0}.pdf-job{page-break-inside:avoid;break-inside:avoid;margin:0 0 12px}.pdf-job h3{font-size:11px;background:#e0f2fe;border-left:3px solid #067AC1;padding:6px;margin:0}.pdf-detail th{width:26%;background:#f8fafc}.pdf-detail td{width:74%;word-break:break-word}</style>`;
+            document.body.appendChild(container);
+            try {
+                await html2pdf().set({ margin: 8, filename: `${namaFileRekap()}.pdf`, image: { type:'jpeg', quality:0.96 }, html2canvas: { scale:1.5, useCORS:true, backgroundColor:'#ffffff' }, jsPDF: { unit:'mm', format:'a3', orientation:'landscape' }, pagebreak: { mode:['css','legacy'] } }).from(container).save();
+                showToast(`PDF berhasil dibuat (${items.length} pekerjaan).`);
+            } catch (err) { console.error('Gagal membuat PDF rekap:', err); showToast('PDF gagal dibuat. Coba gunakan Excel atau periksa koneksi browser.', 'error'); }
+            finally { container.remove(); }
+        }
+        function nilaiAdaRekap(value) { return value !== undefined && value !== null && value !== '' && value !== '-' && Number(value) !== 0; }
 
         // ================= LOGIKA PENOMORAN KONTRAK =================
         const GOOGLE_APP_SCRIPT_URL_PENOMORAN = WEB_APP_URL;
