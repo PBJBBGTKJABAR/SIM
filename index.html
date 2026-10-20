@@ -1062,12 +1062,25 @@
 
         function formatInputDate(str) {
             if (!str || str === '-') return '';
+            const iso = String(str).trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
             const d = new Date(str);
             if (isNaN(d.getTime())) return str;
             const year = d.getFullYear();
             const month = String(d.getMonth() + 1).padStart(2, '0');
             const day = String(d.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
+        }
+
+        function formatTanggalTampilan(value) {
+            if (value === undefined || value === null || value === '' || value === '-') return '-';
+            const text = String(value).trim();
+            const iso = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}`;
+            const dmy = text.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})/);
+            if (dmy) return `${String(dmy[1]).padStart(2, '0')}/${String(dmy[2]).padStart(2, '0')}/${dmy[3]}`;
+            const parsed = new Date(text);
+            return Number.isNaN(parsed.getTime()) ? text : parsed.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
         }
 
         // ================= NAVIGATION & THEME =================
@@ -1657,10 +1670,10 @@
                 tr.innerHTML = `
                     <td class="px-2 py-1.5 text-center font-bold text-slate-400">${idx + 1}</td>
                     <td class="px-2 py-1.5 max-w-[260px] whitespace-normal"><b class="text-slate-800 dark:text-slate-100">${item.uraian || '-'}</b><br><span class="text-slate-500">MAK: ${item.noMak || '-'}</span></td>
-                    <td class="px-2 py-1.5"><b>${item.noKontrak || '-'}</b><br><span class="text-slate-500">${item.tglKontrak || '-'}</span><br><span class="font-semibold text-blue-600 dark:text-blue-400">${formatRupiah(item.nilaiKontrak)}</span></td>
+                    <td class="px-2 py-1.5"><b>${item.noKontrak || '-'}</b><br><span class="text-slate-500">${formatTanggalTampilan(item.tglKontrak)}</span><br><span class="font-semibold text-blue-600 dark:text-blue-400">${formatRupiah(item.nilaiKontrak)}</span></td>
                     <td class="px-2 py-1.5 max-w-[190px] whitespace-normal"><b>${item.penyedia || '-'}</b><br><span class="inline-block mt-1 px-1.5 py-0.5 bg-slate-800 text-white rounded text-[9px] font-bold">${item.caraBayar || '-'}</span><br><span class="text-slate-500">Petugas: ${item.petugas || '-'}</span></td>
-                    <td class="px-2 py-1.5"><span class="text-slate-500">Addendum</span> ${item.noAddendum || '-'}<br><span class="text-slate-500">${item.tglAddendum || '-'} · ${formatRupiah(item.nilaiAddendum)}</span><hr class="my-1 border-slate-200 dark:border-slate-700"><span class="text-slate-500">BAST</span> ${item.noBast || '-'}<br><span class="text-slate-500">${item.tglBast || '-'}</span></td>
-                    <td class="px-2 py-1.5"><b>SPM</b> ${item.noSpm || '-'}<br><span class="text-slate-500">${item.tglSpm || '-'}</span><br><b>SP2D</b> ${item.noSp2d || '-'}<br><span class="text-slate-500">${item.tglSp2d || '-'}</span></td>
+                    <td class="px-2 py-1.5"><span class="text-slate-500">Addendum</span> ${item.noAddendum || '-'}<br><span class="text-slate-500">${formatTanggalTampilan(item.tglAddendum)} · ${formatRupiah(item.nilaiAddendum)}</span><hr class="my-1 border-slate-200 dark:border-slate-700"><span class="text-slate-500">BAST</span> ${item.noBast || '-'}<br><span class="text-slate-500">${formatTanggalTampilan(item.tglBast)}</span></td>
+                    <td class="px-2 py-1.5"><b>SPM</b> ${item.noSpm || '-'}<br><span class="text-slate-500">${formatTanggalTampilan(item.tglSpm)}</span><br><b>SP2D</b> ${item.noSp2d || '-'}<br><span class="text-slate-500">${formatTanggalTampilan(item.tglSp2d)}</span></td>
                     <td class="px-2 py-1.5"><span class="text-slate-500">SPM</span> ${formatRupiah(item.nilaiSpm)}<br><span class="text-slate-500">PPN</span> ${formatRupiah(item.ppn)} · <span class="text-slate-500">PPh</span> ${formatRupiah(item.pph)}<br><b class="text-emerald-600">SP2D ${formatRupiah(item.nilaiSp2d)}</b></td>
                     <td class="px-2 py-1.5 text-center">
                         <div class="flex justify-center gap-1">
@@ -2069,7 +2082,7 @@
                         <td rowspan="2" class="px-2 py-1.5 text-center align-top border-r-2 border-b-[3px] border-[#067AC1]/60 dark:border-sky-700 bg-sky-50/70 dark:bg-slate-900/70"><span class="inline-flex min-w-7 h-7 items-center justify-center rounded-md bg-[#067AC1] text-white text-[11px] font-bold shadow-sm">${item.originalNo}</span></td>
                         <td class="px-2.5 py-1.5 min-w-[260px]">
                             <button type="button" class="block text-left text-[13px] font-semibold text-[#067AC1] dark:text-sky-300 hover:underline leading-snug" onclick="bukaModalSuratPenomoranDariDaftar('${item.id}')" title="Klik untuk melihat dan menambahkan nomor surat">${item.namaPekerjaan}</button>
-                            <div class="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-slate-500 dark:text-slate-400"><span><i class="fas fa-users mr-1 text-slate-400"></i>${item.tim || 'Tim belum diisi'}</span><span><i class="far fa-calendar mr-1 text-slate-400"></i>${item.tglAjuan || 'Tanggal belum diisi'}</span></div>
+                            <div class="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-slate-500 dark:text-slate-400"><span><i class="fas fa-users mr-1 text-slate-400"></i>${item.tim || 'Tim belum diisi'}</span><span><i class="far fa-calendar mr-1 text-slate-400"></i>${formatTanggalTampilan(item.tglAjuan) === '-' ? 'Tanggal belum diisi' : formatTanggalTampilan(item.tglAjuan)}</span></div>
                         </td>
                         <td class="px-2.5 py-1.5 min-w-[190px]">
                             <div class="flex flex-wrap gap-1"><span class="px-1.5 py-0.5 rounded bg-sky-50 text-[#067AC1] dark:bg-sky-900/40 dark:text-sky-200 text-[10px]">${item.penetapan || 'Jenis belum diisi'}</span><span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-200 text-[10px]">${item.metodeBayar || 'Metode belum diisi'}</span></div>
@@ -2096,8 +2109,8 @@
                                 <div><div class="text-[8px] font-bold uppercase tracking-wider text-slate-400">Personil</div><div class="text-slate-700 dark:text-slate-200">PPK <span class="font-medium">${item.ppk || '-'}</span> <span class="text-slate-300 mx-1">·</span> Petugas <span class="font-medium">${item.pic || '-'}</span> <span class="text-slate-300 mx-1">·</span> POKMIL/PP <span class="font-medium">${item.pokmil || '-'}</span></div></div>
                                 <div><div class="text-[8px] font-bold uppercase tracking-wider text-slate-400">Rincian Anggaran</div><div class="text-slate-700 dark:text-slate-200">DIPA ${formatRupiah(item.nilaiPagu)} <span class="text-slate-300 mx-1">·</span> Pagu ${formatRupiah(item.paguKontrak)} <span class="text-slate-300 mx-1">·</span> HPS ${formatRupiah(item.hpsKontrak)}</div></div>
                                 <div><div class="text-[8px] font-bold uppercase tracking-wider text-slate-400">Metode & Belanja</div><div class="text-slate-700 dark:text-slate-200">${item.metodePekerjaan || '-'} <span class="text-slate-300 mx-1">·</span> ${item.jenisBelanja || '-'}</div></div>
-                                <div><div class="text-[8px] font-bold uppercase tracking-wider text-slate-400">Kontrak & Dokumen</div><div class="text-slate-700 dark:text-slate-200">${item.bentukKontrak || '-'} <span class="text-slate-400">${item.noKontrak && item.noKontrak !== '-' ? `· ${item.noKontrak}` : ''} ${item.tglKontrak && item.tglKontrak !== '-' ? `· ${item.tglKontrak}` : ''}</span></div></div>
-                                <div><div class="text-[8px] font-bold uppercase tracking-wider text-slate-400">Durasi, Penyelesaian & Status</div><div class="text-slate-700 dark:text-slate-200">${item.durasiWaktu || '-'} <span class="text-slate-300 mx-1">·</span> Selesai ${item.tglPenyelesaian || '-'} <span class="text-slate-300 mx-1">·</span> ${item.statusDokumen || '-'} <span class="text-slate-300 mx-1">·</span> Add. ${formatRupiah(item.nilaiAddendum)}</div></div>
+                                <div><div class="text-[8px] font-bold uppercase tracking-wider text-slate-400">Kontrak & Dokumen</div><div class="text-slate-700 dark:text-slate-200">${item.bentukKontrak || '-'} <span class="text-slate-400">${item.noKontrak && item.noKontrak !== '-' ? `· ${item.noKontrak}` : ''} ${item.tglKontrak && item.tglKontrak !== '-' ? `· ${formatTanggalTampilan(item.tglKontrak)}` : ''}</span></div></div>
+                                <div><div class="text-[8px] font-bold uppercase tracking-wider text-slate-400">Durasi, Penyelesaian & Status</div><div class="text-slate-700 dark:text-slate-200">${item.durasiWaktu || '-'} <span class="text-slate-300 mx-1">·</span> Selesai ${formatTanggalTampilan(item.tglPenyelesaian)} <span class="text-slate-300 mx-1">·</span> ${item.statusDokumen || '-'} <span class="text-slate-300 mx-1">·</span> Add. ${formatRupiah(item.nilaiAddendum)}</div></div>
                                 <div class="flex items-end"><div class="flex flex-wrap gap-x-3 gap-y-0.5">
                                     ${item.linkDokumen ? `<a href="${item.linkDokumen}" target="_blank" rel="noopener noreferrer" class="text-[#067AC1] dark:text-sky-300 hover:underline font-medium"><i class="fas fa-link mr-1"></i>Dokumen terkait</a>` : '<span class="text-slate-400">Belum ada dokumen terkait</span>'}
                                     ${item.linkScan ? `<a href="${item.linkScan}" target="_blank" rel="noopener noreferrer" class="text-[#067AC1] dark:text-sky-300 hover:underline font-medium"><i class="fas fa-file-pdf mr-1"></i>Scan kontrak</a>` : ''}
@@ -2122,10 +2135,10 @@
             
             dataPengadaan.forEach((item) => {
                 let row = [
-                    item.originalNo, `"${item.tim}"`, item.tglAjuan, item.tglPenyelesaian || '', `"${item.namaPekerjaan}"`, `"${item.review}"`, `"${item.durasiWaktu}"`, 
+                    item.originalNo, `"${item.tim}"`, `"${formatTanggalTampilan(item.tglAjuan)}"`, `"${formatTanggalTampilan(item.tglPenyelesaian)}"`, `"${item.namaPekerjaan}"`, `"${item.review}"`, `"${item.durasiWaktu}"`, 
                     `"${item.linkDokumen}"`, `"${item.ppk}"`, `"${item.pic}"`, `"${item.pokmil}"`, `"${item.penetapan}"`, `"${item.metodeBayar}"`, 
                     `"${item.kodeMak}"`, item.nilaiPagu, item.paguKontrak, item.hpsKontrak, item.nilaiKontrak, `"${item.metodePekerjaan}"`, 
-                    `"${item.jenisBelanja}"`, `"${item.bentukKontrak}"`, `"${item.statusDokumen}"`, `"${item.noKontrak}"`, item.tglKontrak, 
+                    `"${item.jenisBelanja}"`, `"${item.bentukKontrak}"`, `"${item.statusDokumen}"`, `"${item.noKontrak}"`, `"${formatTanggalTampilan(item.tglKontrak)}"`, 
                     item.nilaiSesuaiDok, item.nilaiAddendum, `"${item.namaPenyedia}"`, `"${item.linkScan}"`, `"${item.spse}"`
                 ];
                 csvContent += row.join(",") + "\n";
@@ -2147,9 +2160,9 @@
             
             dataSpkKeuangan.forEach((item) => {
                 let row = [
-                    `"${item.noMak}"`, `"${item.noKontrak}"`, `"${item.tglKontrak}"`, `"${item.uraian}"`, `"${item.penyedia}"`, item.nilaiKontrak,
-                    `"${item.noAddendum}"`, `"${item.tglAddendum}"`, item.nilaiAddendum, `"${item.noBast}"`, `"${item.tglBast}"`, `"${item.caraBayar}"`,
-                    `"${item.petugas}"`, `"${item.noSpm}"`, `"${item.tglSpm}"`, `"${item.noSp2d}"`, `"${item.tglSp2d}"`, item.nilaiSpm, item.ppn, item.pph, item.nilaiSp2d
+                    `"${item.noMak}"`, `"${item.noKontrak}"`, `"${formatTanggalTampilan(item.tglKontrak)}"`, `"${item.uraian}"`, `"${item.penyedia}"`, item.nilaiKontrak,
+                    `"${item.noAddendum}"`, `"${formatTanggalTampilan(item.tglAddendum)}"`, item.nilaiAddendum, `"${item.noBast}"`, `"${formatTanggalTampilan(item.tglBast)}"`, `"${item.caraBayar}"`,
+                    `"${item.petugas}"`, `"${item.noSpm}"`, `"${formatTanggalTampilan(item.tglSpm)}"`, `"${item.noSp2d}"`, `"${formatTanggalTampilan(item.tglSp2d)}"`, item.nilaiSpm, item.ppn, item.pph, item.nilaiSp2d
                 ];
                 csvContent += row.join(",") + "\n";
             });
@@ -2204,7 +2217,7 @@
 
         function buatBarisDetailEksporRekap(items) {
             return items.map(item => ({
-                "No.": item.originalNo, "Tim yang Mengajukan": item.tim, "Tanggal Ajuan": item.tglAjuan, "Tanggal Penyelesaian / Realisasi": item.tglPenyelesaian,
+                "No.": item.originalNo, "Tim yang Mengajukan": item.tim, "Tanggal Ajuan": formatTanggalTampilan(item.tglAjuan), "Tanggal Penyelesaian / Realisasi": formatTanggalTampilan(item.tglPenyelesaian),
                 "Nama Pekerjaan": item.namaPekerjaan, "Review": item.review, "Durasi Waktu": item.durasiWaktu,
                 "Link Dokumen Terkait": item.linkDokumen, "PPK": item.ppk, "Petugas Pengadaan": item.pic,
                 "Petugas POKMIL/PP": item.pokmil, "Penetapan Barang/Jasa": item.penetapan,
@@ -2212,7 +2225,7 @@
                 "Nilai PAGU DIPA": item.nilaiPagu, "Pagu Kontrak": item.paguKontrak, "HPS Kontrak": item.hpsKontrak,
                 "Nilai Kontrak": item.nilaiKontrak, "Metode Pekerjaan": item.metodePekerjaan,
                 "Jenis Belanja": item.jenisBelanja, "Dokumen Kontrak": item.bentukKontrak,
-                "Status Dokumen": item.statusDokumen, "Nomor Kontrak": item.noKontrak, "Tanggal SPK": item.tglKontrak,
+                "Status Dokumen": item.statusDokumen, "Nomor Kontrak": item.noKontrak, "Tanggal SPK": formatTanggalTampilan(item.tglKontrak),
                 "Nilai Kontrak (Sesuai Dok.)": item.nilaiSesuaiDok, "Nilai Addendum": item.nilaiAddendum,
                 "Nama Penyedia": item.namaPenyedia, "Link Scan Dokumen Kontrak": item.linkScan,
                 "Pencatatan di SPSE": item.spse
@@ -2439,7 +2452,7 @@
             pekerjaanTersedia.forEach(item => {
                 const option = document.createElement('option');
                 option.value = String(item.id);
-                option.textContent = `${item.namaPekerjaan}${item.tglAjuan ? ` · ${item.tglAjuan}` : ''}`;
+                option.textContent = `${item.namaPekerjaan}${item.tglAjuan ? ` · ${formatTanggalTampilan(item.tglAjuan)}` : ''}`;
                 select.appendChild(option);
             });
             if (selectedId && pekerjaanTersedia.some(item => String(item.id) === String(selectedId))) select.value = String(selectedId);
