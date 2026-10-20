@@ -941,6 +941,7 @@
 
         let dataPengadaan = [];
         let dataSpkKeuangan = [];
+        let dataPengadaanSebelumEdit = null;
 
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzKe6CY3HZwIWhJwFejzhJTJFdla04gLMZzMSz8yGf5aBobl-CMqcG5LP6V8NodQcL-DA/exec";
         let currentUser = null;
@@ -1085,6 +1086,10 @@
 
         // ================= NAVIGATION & THEME =================
         async function switchTab(tabId) {
+            if (tabId === 'tab-penomoran') {
+                try { await tarikDataTerbaruPenomoran(); }
+                catch (err) { showToast(err.message || 'Tidak dapat memuat data penomoran.', 'error'); return; }
+            }
             if (tabId === 'tab-setting') {
                 try {
                     const user = await pastikanLogin();
@@ -1164,7 +1169,7 @@
             document.getElementById('loadingOverlay').style.display = 'flex';
             document.getElementById('loadingText').innerText = "Mengambil data dari Cloud...";
 
-            fetch(WEB_APP_URL)
+            fetch(`${WEB_APP_URL}?_=${Date.now()}`, { cache: 'no-store' })
                 .then(res => res.json())
                 .then(response => {
                     if (response.masterData && typeof response.masterData === 'object') {
@@ -1268,14 +1273,51 @@
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ ...payload, userNip: user.nip })
             }))
-            .then(() => new Promise(resolve => setTimeout(resolve, 1500)))
-            .then(() => fetch(WEB_APP_URL))
-            .then(res => res.json())
-            .then(snapshot => {
+            .then(async () => {
+              for (let attempt = 0; attempt < 6; attempt++) {
+                const snapshot = await fetch(`${WEB_APP_URL}?_=${Date.now()}-${attempt}`, { cache: 'no-store' }).then(res => res.json());
                 const rows = payload.sheetType === 'spk' ? (snapshot.spk || []) : (snapshot.pengadaan || []);
-                const exists = rows.some(row => String(row['ID'] ?? row['id'] ?? '') === String(payload.id));
-                const confirmed = payload.action === 'hapus' ? !exists : exists;
-                if (!confirmed) throw new Error('Perubahan belum terkonfirmasi di Spreadsheet. Periksa akses NIP dan coba refresh data.');
+                const savedRow = rows.find(row => String(row['ID'] ?? row['id'] ?? '') === String(payload.id));
+                const exists = Boolean(savedRow);
+                const fieldNames = payload.sheetType === 'pengadaan' ? {
+                    tim:'Tim yang Mengajukan', tglAjuan:'Tanggal Ajuan', tglPenyelesaian:'Tanggal Penyelesaian',
+                    namaPekerjaan:'Nama Pekerjaan', review:'Review', durasiWaktu:'Durasi Waktu',
+                    linkDokumen:['Link Dokumen Terkait/ Keterangan','Link Dokumen Terkait','Link Dokumen'], ppk:'PPK', pic:'Petugas Pengadaan',
+                    pokmil:'Petugas POKMIL/PP', penetapan:'Penetapan Barang/Jasa', metodeBayar:'Metode Pembayaran',
+                    kodeMak:'Kode MAK', nilaiPagu:'Nilai PAGU DIPA', paguKontrak:'Pagu Kontrak', hpsKontrak:'HPS Kontrak',
+                    nilaiKontrak:'Nilai Kontrak', metodePekerjaan:'Metode Pekerjaan', jenisBelanja:'Jenis Belanja',
+                    bentukKontrak:'Dokumen Kontrak', statusDokumen:'Status Dokumen', noKontrak:'Nomor Kontrak (SPK)',
+                    tglKontrak:'Tanggal SPK', nilaiSesuaiDok:'Nilai Kontrak (Sesuai Dok. Kontrak) atau Addendum',
+                    nilaiAddendum:'Nilai Addendum', namaPenyedia:'Nama Penyedia', linkScan:'Link Scan Dokumen Kontrak', spse:'Pencatatan di SPSE'
+                } : {
+                    noMak:'NO MAK', noKontrak:'NO KONTRAK', tglKontrak:'TGL KONTRAK', uraian:'URAIAN PEKERJAAN',
+                    penyedia:'PENYEDIA JASA', nilaiKontrak:'NILAI TOTAL SPK', noAddendum:'NO SPK ADDENDUM',
+                    tglAddendum:'TGL SPK ADDENDUM', nilaiAddendum:'NILAI SPK ADDENDUM', noBast:'NO. BAST',
+                    tglBast:'TGL BAST', caraBayar:'CARA PEMBAYARAN', petugas:'PETUGAS PENGADAAN', noSpm:'NO. SPM',
+                    tglSpm:'TGL SPM', noSp2d:'NO. SP2D', tglSp2d:'TGL SP2D', nilaiSpm:'NILAI SPM',
+                    ppn:'PPN', pph:'PPh', nilaiSp2d:'NILAI SP2D'
+                };
+                const dateKeys = new Set(['tglAjuan','tglPenyelesaian','tglKontrak','tglAddendum','tglBast','tglSpm','tglSp2d']);
+                const numberKeys = new Set(['nilaiPagu','paguKontrak','hpsKontrak','nilaiKontrak','nilaiSesuaiDok','nilaiAddendum','nilaiSpm','ppn','pph','nilaiSp2d']);
+                const sameValue = (key, expected, actual) => {
+                    if (dateKeys.has(key)) return formatInputDate(actual) === formatInputDate(expected);
+                    if (numberKeys.has(key)) return (Number(actual) || 0) === (Number(expected) || 0);
+                    return String(actual == null ? '' : actual).trim() === String(expected == null ? '' : expected).trim();
+                };
+                const keysToConfirm = Array.isArray(payload.verifyKeys) ? payload.verifyKeys : Object.keys(fieldNames);
+                const fieldsConfirmed = payload.action === 'hapus' || (exists && keysToConfirm.every(key => {
+                    if (!fieldNames[key]) return false;
+                    const headers = Array.isArray(fieldNames[key]) ? fieldNames[key] : [fieldNames[key]];
+                    const header = headers.find(name => savedRow[name] !== undefined);
+                    return header !== undefined && sameValue(key, payload[key], savedRow[header]);
+                }));
+                const confirmed = payload.action === 'hapus' ? !exists : fieldsConfirmed;
+                if (confirmed) return snapshot;
+                await new Promise(resolve => setTimeout(resolve, 700));
+              }
+              throw new Error('Perubahan belum terkonfirmasi di Spreadsheet. Periksa akses NIP dan coba refresh data.');
+            })
+            .then(() => {
                 if(callback) callback();
                 muatDataDariSpreadsheet();
             })
@@ -1485,6 +1527,7 @@
         // ================= MODAL HANDLERS FOR PENGADAAN =================
         async function bukaModalTambah() {
             try { await pastikanLogin(); } catch (err) { return showToast(err.message || 'Login diperlukan.', 'error'); }
+            dataPengadaanSebelumEdit = null;
             document.getElementById('formPengadaan').reset();
             document.getElementById('editId').value = '';
             document.getElementById('modalTitle').innerText = 'Form Pengajuan & Pencatatan Pengadaan Baru';
@@ -1535,6 +1578,19 @@
                 linkScan: document.getElementById('linkScan').value,
                 spse: document.getElementById('spse').value
             };
+
+            if (editId && dataPengadaanSebelumEdit) {
+                const dateKeys = new Set(['tglAjuan','tglPenyelesaian','tglKontrak']);
+                const numberKeys = new Set(['nilaiPagu','paguKontrak','hpsKontrak','nilaiKontrak','nilaiSesuaiDok','nilaiAddendum']);
+                newData.verifyKeys = Object.keys(newData).filter(key => {
+                    if (['sheetType','action','id'].includes(key) || dataPengadaanSebelumEdit[key] === undefined) return false;
+                    const before = dataPengadaanSebelumEdit[key];
+                    const after = newData[key];
+                    if (dateKeys.has(key)) return formatInputDate(before) !== formatInputDate(after);
+                    if (numberKeys.has(key)) return (Number(before) || 0) !== (Number(after) || 0);
+                    return String(before == null ? '' : before).trim() !== String(after == null ? '' : after).trim();
+                });
+            }
 
             closeModalForm();
             kirimKeSpreadsheet(newData, () => {
@@ -1690,6 +1746,7 @@
             try { await pastikanLogin(); } catch (err) { return showToast(err.message || 'Login diperlukan.', 'error'); }
             const item = dataPengadaan.find(d => Number(d.id) === Number(id));
             if (!item) return;
+            dataPengadaanSebelumEdit = { ...item };
 
             document.getElementById('editId').value = item.id;
             document.getElementById('tim').value = item.tim || '';
@@ -2291,9 +2348,6 @@
         function nilaiAdaRekap(value) { return value !== undefined && value !== null && value !== '' && value !== '-' && Number(value) !== 0; }
 
         // ================= LOGIKA PENOMORAN KONTRAK =================
-        const GOOGLE_APP_SCRIPT_URL_PENOMORAN = WEB_APP_URL;
-        const SECRET_KEY_PENOMORAN = "PBJReborn2026#";
-
         const masterDokumenPenomoran = {
             "Berita Acara Penyusunan RKS dan HPS/OE": "B7.2/PBJ.01.01",
             "Surat Permintaan Pengadaan Barang dan Jasa": "B7.2/PBJ.01.01",
@@ -2334,7 +2388,7 @@
                     select.innerHTML += `<option value="${dokumen}">${dokumen}</option>`;
                 }
             }
-            tarikDataTerbaruPenomoran();
+            if (currentUser && currentUser.nip) tarikDataTerbaruPenomoran();
         }
 
         function pindahSubtabPenomoran(subtabId) {
@@ -2349,11 +2403,13 @@
             document.getElementById('loadingOverlay').style.display = 'flex';
             document.getElementById('loadingText').innerText = "Mengambil data penomoran...";
             try {
-                const urlFetch = `${GOOGLE_APP_SCRIPT_URL_PENOMORAN}?kunci=${encodeURIComponent(SECRET_KEY_PENOMORAN)}`;
+                const user = await pastikanLogin();
+                const urlFetch = `${WEB_APP_URL}?penomoranNip=${encodeURIComponent(user.nip)}&_=${Date.now()}`;
                 const respon = await fetch(urlFetch);
                 if (!respon.ok) throw new Error(`HTTP Error: ${respon.status}`);
                 const rawText = await respon.text();
                 let dataState = JSON.parse(rawText);
+                if (dataState.status === 'error') throw new Error(dataState.message || 'Akses penomoran ditolak.');
                 if(dataState.error) throw new Error(dataState.error);
                 
                 dataAjuanPenomoran = dataState.dataAjuan || [];
@@ -2388,19 +2444,18 @@
             try {
                 const user = await pastikanLogin();
                 const payloadKirim = {
-                    kunci: SECRET_KEY_PENOMORAN,
                     userNip: user.nip,
                     state: { dataAjuan: dataAjuanPenomoran, nomorBulanan: nomorBulananPenomoran },
                     dataFlat: flatData
                 };
-                await fetch(GOOGLE_APP_SCRIPT_URL_PENOMORAN, {
+                await fetch(WEB_APP_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify(payloadKirim)
                 });
                 await new Promise(resolve => setTimeout(resolve, 1200));
-                const verifyResponse = await fetch(`${GOOGLE_APP_SCRIPT_URL_PENOMORAN}?kunci=${encodeURIComponent(SECRET_KEY_PENOMORAN)}`);
+                const verifyResponse = await fetch(`${WEB_APP_URL}?penomoranNip=${encodeURIComponent(user.nip)}&_=${Date.now()}`, { cache: 'no-store' });
                 const saved = await verifyResponse.json();
                 if (JSON.stringify(saved.dataAjuan || []) !== JSON.stringify(payloadKirim.state.dataAjuan)) {
                     throw new Error('Perubahan penomoran belum tersimpan atau nomornya sudah dipakai. Muat ulang data sebelum mencoba lagi.');
@@ -2566,7 +2621,9 @@
             renderSemuaPenomoran();
         }
 
-        function bukaModalSuratPenomoranDariDaftar(idPengadaan) {
+        async function bukaModalSuratPenomoranDariDaftar(idPengadaan) {
+            try { await tarikDataTerbaruPenomoran(); }
+            catch (err) { showToast(err.message || 'Tidak dapat memuat data penomoran.', 'error'); return; }
             let item = dataPengadaan.find(d => Number(d.id) === Number(idPengadaan));
             if(!item) return;
             
